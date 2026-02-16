@@ -9,6 +9,34 @@ The **BioCPPNet U-Net** is the core deep learning model responsible for source s
 -   **Input:** Magnitude Spectrogram of the mixed/noisy signal.
 -   **Output:** Estimated Magnitude Spectrogram of the target source (or a soft mask).
 
+## Architecture Diagram
+
+```mermaid
+flowchart TD
+    subgraph Encoder
+    In["Input Spectrogram"] --> E1["Encoder Block 1<br>(Conv 32)"]
+    E1 --> P1["Pool"] --> E2["Encoder Block 2<br>(Conv 64)"]
+    E2 --> P2["Pool"] --> E3["Encoder Block 3<br>(Conv 128)"]
+    E3 --> P3["Pool"] --> E4["Encoder Block 4<br>(Conv 256)"]
+    end
+
+    E4 --> P4["Pool"] --> Bottleneck["Bottleneck<br>(Conv 512)"]
+
+    subgraph Decoder
+    Bottleneck --> U4["UpSample"] --> D4["Decoder Block 4<br>(Conv 256)"]
+    D4 --> U3["UpSample"] --> D3["Decoder Block 3<br>(Conv 128)"]
+    D3 --> U2["UpSample"] --> D2["Decoder Block 2<br>(Conv 64)"]
+    D2 --> U1["UpSample"] --> D1["Decoder Block 1<br>(Conv 32)"]
+    end
+
+    E4 -.->|Skip Connection| D4
+    E3 -.->|Skip Connection| D3
+    E2 -.->|Skip Connection| D2
+    E1 -.->|Skip Connection| D1
+
+    D1 --> Out["Output Layer<br>(Conv 1x1 + Sigmoid/ReLU)"]
+```
+
 ## Architectural Details
 
 ### 1. Input Layer

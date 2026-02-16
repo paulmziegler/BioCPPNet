@@ -8,6 +8,20 @@ The **Denoising Autoencoder (DAE)** is a pre-processing module designed to remov
 -   **Goal:** Learn a compact representation of "clean bioacoustic signals" and reconstruct them from noisy inputs.
 -   **Domain:** Magnitude Spectrogram.
 
+## Architecture Diagram
+
+```mermaid
+flowchart TD
+    Input["Noisy Spectrogram"] --> Enc1["Encoder Block 1<br>(Conv2d 32 + ReLU)"]
+    Enc1 --> Enc2["Encoder Block 2<br>(Conv2d 64 + ReLU)"]
+    Enc2 --> Enc3["Encoder Block 3<br>(Conv2d 128 + ReLU)"]
+    Enc3 --> Bottleneck["Latent Space<br>(Dense 256/512)"]
+    Bottleneck --> Dec3["Decoder Block 3<br>(UpSample 128 + ReLU)"]
+    Dec3 --> Dec2["Decoder Block 2<br>(UpSample 64 + ReLU)"]
+    Dec2 --> Dec1["Decoder Block 1<br>(UpSample 32 + ReLU)"]
+    Dec1 --> Output["Clean Spectrogram<br>(Sigmoid/ReLU)"]
+```
+
 ## Architectural Details
 
 ### 1. Encoder (Compression)

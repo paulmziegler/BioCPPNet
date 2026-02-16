@@ -6,6 +6,7 @@ from src.spatial.physics import (
     apply_subsample_shifts
 )
 from src.utils import CONFIG
+from src.noise_models import WhiteNoise, ColoredNoise, RainNoise
 
 class DataMixer:
     """
@@ -40,20 +41,9 @@ class DataMixer:
         Returns:
             (N_channels, N_samples) multichannel array.
         """
-        # 1. Get source direction vector
         source_vec = azimuth_elevation_to_vector(azimuth_deg, elevation_deg)
-        
-        # 2. Calculate relative distance differences (positive = closer)
-        # distance_diffs shape: (N_mics,)
         distance_diffs = calculate_steering_vector(self.mic_positions, source_vec)
-        
-        # 3. Convert to time delays
-        # If distance is positive (closer), it arrives earlier.
-        # So we want a NEGATIVE delay (shift left).
-        # T = -d / c
         delays = -distance_diffs / self.speed_of_sound
-        
-        # 4. Apply shifts
         return apply_subsample_shifts(mono_signal, delays, self.sample_rate)
 
     def mix_signals(self, signal1: np.ndarray, signal2: np.ndarray, snr_db: float) -> np.ndarray:
@@ -69,30 +59,63 @@ class DataMixer:
         Returns:
             Mixed signal.
         """
-        # Ensure dimensions match
         if signal1.ndim != signal2.ndim:
             raise ValueError("Signal dimensions must match for mixing.")
             
-        # Calculate power (average across all channels if multichannel)
         p1 = self._calculate_power(signal1)
         p2 = self._calculate_power(signal2)
         
-        # Avoid div by zero
         if p2 == 0:
             return signal1
             
-        # Calculate scaling factor
         target_p2 = p1 / (10 ** (snr_db / 10))
         scale = np.sqrt(target_p2 / p2)
         
         mixed = signal1 + (signal2 * scale)
         
-        # Normalize to prevent clipping (max amplitude 1.0)
         max_val = np.max(np.abs(mixed))
         if max_val > 0:
             mixed /= max_val
             
         return mixed
+
+    def add_noise(self, signal: np.ndarray, noise_type: str = 'white', snr_db: float = 20.0, **kwargs) -> np.ndarray:
+        """
+        Adds synthetic noise to the signal.
+        
+        Args:
+            signal: (N_channels, N_samples) or (N_samples,) input signal.
+            noise_type: 'white', 'pink', 'brown', 'rain'.
+            snr_db: Signal-to-Noise Ratio.
+            kwargs: Additional args for noise generators (e.g., rate_hz for rain).
+            
+        Returns:
+            Noisy signal.
+        """
+        duration = signal.shape[-1] / self.sample_rate
+        num_channels = signal.shape[0] if signal.ndim > 1 else 1
+        
+        # Instantiate generator
+        if noise_type == 'white':
+            gen = WhiteNoise(self.sample_rate)
+            noise = gen.generate(duration, num_channels, std=1.0)
+        elif noise_type in ['pink', 'brown']:
+            gen = ColoredNoise(self.sample_rate, color=noise_type)
+            noise = gen.generate(duration, num_channels, std=1.0)
+        elif noise_type == 'rain':
+            gen = RainNoise(self.sample_rate)
+            rate = kwargs.get('rate_hz', 10.0)
+            amp = kwargs.get('amplitude', 1.0)
+            noise = gen.generate(duration, num_channels, rate_hz=rate, amplitude=amp)
+        else:
+            raise ValueError(f"Unknown noise type: {noise_type}")
+            
+        # Ensure noise shape matches signal (handle 1D case)
+        if signal.ndim == 1:
+            noise = noise[0] # Take first channel
+            
+        # Use existing mix logic
+        return self.mix_signals(signal, noise, snr_db)
 
     def _calculate_power(self, signal: np.ndarray) -> float:
         return np.mean(signal ** 2)

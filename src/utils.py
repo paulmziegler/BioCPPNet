@@ -27,12 +27,23 @@ def load_config(config_file="project_config.yaml"):
 
 CONFIG = load_config()
 
+# Global session timestamp
+_SESSION_TIMESTAMP = None
+
 def get_timestamp_str():
     return datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+def _get_session_timestamp():
+    """Returns a consistent timestamp for the current session."""
+    global _SESSION_TIMESTAMP
+    if _SESSION_TIMESTAMP is None:
+        _SESSION_TIMESTAMP = get_timestamp_str()
+    return _SESSION_TIMESTAMP
 
 def setup_logger(name):
     """
     Sets up a logger that outputs to console and a timestamped file.
+    Uses a shared session timestamp for the filename.
     """
     logger = logging.getLogger(name)
     
@@ -56,31 +67,37 @@ def setup_logger(name):
 
     # File Handler
     log_dir_name = CONFIG.get("directories", {}).get("logs", "logs")
-    
-    # If config not loaded correctly, default to 'logs'
     if not log_dir_name:
         log_dir_name = "logs"
         
     Path(log_dir_name).mkdir(parents=True, exist_ok=True)
     
-    timestamp = get_timestamp_str()
+    # Use session timestamp so all logs for this run go to a consistently named file
+    # Or keep separate? Usually nice to match the plot folder.
+    timestamp = _get_session_timestamp()
     log_file = os.path.join(log_dir_name, f"biocppnet_{timestamp}.log")
     
-    fh = logging.FileHandler(log_file)
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    # Check if handler for this file already exists (to prevent dupes if multiple loggers setup)
+    # This is a simple check; assumes file path unique
+    file_handler_exists = any(isinstance(h, logging.FileHandler) and h.baseFilename == os.path.abspath(log_file) for h in logger.handlers)
+    
+    if not file_handler_exists:
+        fh = logging.FileHandler(log_file)
+        fh.setFormatter(formatter)
+        logger.addHandler(fh)
 
     return logger
 
 def get_plot_path(filename_prefix):
     """
     Returns a path for saving a plot with a timestamp in the test results directory.
+    Reuses the same session folder for all plots in a single run.
     """
     results_dir_name = CONFIG.get("directories", {}).get("test_results", "unit test results")
     if not results_dir_name:
         results_dir_name = "unit test results"
         
-    timestamp = get_timestamp_str()
+    timestamp = _get_session_timestamp()
     
     session_dir = os.path.join(results_dir_name, f"session_{timestamp}")
     Path(session_dir).mkdir(parents=True, exist_ok=True)

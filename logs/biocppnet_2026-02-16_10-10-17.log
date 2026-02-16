@@ -1,0 +1,6 @@
+2026-02-16 10:10:18 - test_noise - INFO - White Noise PSD Slope: 0.0011 (Expected ~0.0)
+2026-02-16 10:10:19 - test_noise - INFO - Saved plot to unit test results\session_2026-02-16_10-10-18\noise_psd_white.png
+2026-02-16 10:10:19 - test_noise - INFO - Pink Noise PSD Slope: -0.9988 (Expected ~ -1.0)
+2026-02-16 10:10:20 - test_noise - INFO - Saved plot to unit test results\session_2026-02-16_10-10-19\noise_psd_pink.png
+2026-02-16 10:10:20 - test_noise - INFO - Brown Noise PSD Slope: -2.0096 (Expected ~ -2.0)
+2026-02-16 10:10:21 - test_noise - INFO - Saved plot to unit test results\session_2026-02-16_10-10-20\noise_psd_brown.png

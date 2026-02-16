@@ -26,7 +26,8 @@ graph TD
 classDiagram
     class DataMixer {
         +mix_signals(signal1, signal2, snr_db)
-        -_calculate_power(signal)
+        +add_noise(signal, type, snr)
+        +spatialise_signal(mono, azimuth)
     }
 
     class BioCPPNet {
@@ -42,13 +43,13 @@ classDiagram
     class Beamformer {
         +estimate_doa(multichannel_signal)
         +delay_and_sum(multichannel_signal, azimuth)
-        -_gcc_phat(sig1, sig2)
+    }
+    
+    class NoiseGenerator {
+        +generate(duration)
     }
 
-    class Metrics {
-        +calculate_sisdr(reference, estimate)
-    }
-
+    DataMixer ..> NoiseGenerator : Uses
     DataMixer ..> BioCPPNet : Generates Training Data
     Beamformer ..> BioCPPNet : Pre-processes Input
 ```
@@ -60,48 +61,38 @@ BioaccousticCPP/
 ├── data/                  # Raw and processed audio data
 ├── docs/                  # Project documentation & Kanban board
 │   └── BioCPPNet/         # Obsidian Vault
-│       ├── .obsidian/
-│       ├── architecture.md
-│       ├── KANBAN.md
-│       ├── Welcome.md
-│       └── Signal_Specification.md
-├── results/               # General project output and results
+├── results/               # General project output
 ├── src/                   # Source code
 │   ├── models/            # Deep Learning Models
-│   │   ├── unet.py
-│   │   └── dae.py     # Denoising Autoencoder
-│   ├── spatial/           # Spatial Audio Processing
-│   │   └── beamforming.py
+│   ├── spatial/           # Spatial Audio (Beamforming/Physics)
 │   ├── metrics/           # Evaluation Metrics
-│   │   └── sisdr.py
 │   ├── data_mixer.py      # Data Augmentation/Mixing
+│   ├── noise_models.py    # Noise Generators (White, Pink, Rain)
 │   ├── utils.py           # Logging & Plotting
 │   └── main.py            # Main entry point
 ├── tests/                 # Unit tests
 ├── unit test results/     # Test execution reports
-├── docker-compose.yml     # Docker services
-├── Dockerfile             # Container definition
+│   └── session_TIMESTAMP/ # Per-run output folder (plots/logs)
 ├── manage.py              # CLI management tool
-├── project_config.yaml    # Configuration
-├── pyproject.toml         # Python project metadata
-└── requirements.txt       # Dependencies
+└── project_config.yaml    # Configuration
 ```
 
 ## Components
 
 ### 1. Data Pipeline (`src/data_mixer.py`)
 -   **Input:** Isolated vocalizations (WAV).
--   **Process:** Synthetic mixing at various SNRs.
--   **Output:** Mixed WAV files + ground truth.
+-   **Process:** Synthetic mixing at various SNRs + Spatialization (Virtual Array).
+-   **Noise Models:** White, Pink/Brown (Wind), Rain (Impulsive).
+-   **Output:** Multichannel WAV files.
 
 ### 2. Core Models
 -   **BioCPPNet (`src/models/unet.py`):** U-Net architecture for source separation.
 -   **Denoising Autoencoder (`src/models/dae.py`):** Optional pre-processing stage for noise reduction.
 
 ### 3. Spatial Processing (`src/spatial/beamforming.py`)
--   **Algorithm:** MUSIC for DoA estimation.
+-   **Algorithm:** MUSIC for DoA estimation (Planned).
 -   **Beamforming:** Delay-and-Sum.
--   **Resolution Enhancement:** Sub-sample delay estimation using GCC-PHAT and parabolic interpolation.
+-   **Physics:** Sub-sample delay simulation via FFT phase shifting.
 -   **Hardware:** 16-channel array (simulated or miniDSP UMA-16).
 
 ### 4. Validation (`src/metrics/sisdr.py`)
@@ -110,3 +101,4 @@ BioaccousticCPP/
 
 ## Configuration
 -   Managed via `project_config.yaml`.
+-   **Logging:** All logs and plots are timestamped per session to ensure reproducibility.

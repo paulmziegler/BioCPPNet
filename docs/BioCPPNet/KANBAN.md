@@ -19,12 +19,12 @@ kanban-plugin: basic
 - [x] Verify simulation physics (sine wave delay test)
 - [x] Handle high sampling rates (up to 250kHz)
 - [ ] Implement Noise Models:
-    - [ ] Independent Sensor Noise (AWGN)
-    - [ ] Directional Point-Source Interference (Cocktail Party)
+    - [x] Independent Sensor Noise (AWGN)
+    - [x] Directional Point-Source Interference (Cocktail Party)
+    - [x] Wind Noise simulation (Pink/Brown noise)
+    - [x] Rain Noise impact (Impulsive noise)
     - [ ] Ambient/Diffuse Noise (Bessel-based correlation)
 - [ ] Implement Outdoor Environmental Factors:
-    - [ ] Wind Noise simulation (Low-frequency Brownian/Pink noise)
-    - [ ] Rain Noise impact (Broadband impulsive spikes)
     - [ ] Atmospheric Absorption (Frequency-dependent attenuation)
 
 

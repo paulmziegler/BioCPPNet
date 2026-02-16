@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.signal
 
+
 class ReverbGenerator:
     """
     Generates synthetic Room Impulse Responses (RIRs) and applies convolution.
@@ -21,36 +22,41 @@ class ReverbGenerator:
         alpha = 6.908 / rt60
         return np.exp(-alpha * t)
 
-    def generate_stochastic_rir(self, num_channels: int, rt60: float = 0.5, direct_ratio: float = 0.5) -> np.ndarray:
+    def generate_stochastic_rir(
+        self, num_channels: int, rt60: float = 0.5, direct_ratio: float = 0.5
+    ) -> np.ndarray:
         """
         Generates a multichannel RIR with diffuse late reverberation.
-        
+
         Args:
+            num_channels: Number of microphones in the array.
             rt60: Reverberation time in seconds.
             direct_ratio: Ratio of direct sound to reverb energy.
-            
+
         Returns:
             (N_channels, N_samples) RIR.
         """
         # Duration of RIR usually slightly longer than RT60
         duration = rt60 * 1.2
         n_samples = int(duration * self.sample_rate)
-        
+
         # 1. Generate Noise (Diffuse field assumption -> Independent gaussian)
-        # For better realism, could impose spatial coherence, but independent is a hard case for beamformers.
+        # For better realism, could impose spatial coherence,
+        # but independent is a hard case for beamformers.
         noise = np.random.randn(num_channels, n_samples)
-        
+
         # 2. Apply Decay Envelope
         envelope = self.generate_rt60_envelope(duration, rt60)
         late_reverb = noise * envelope
-        
+
         # 3. Add Direct Path (Impulse at t=0)
         # Note: In a full pipeline, 'direct path' is handled by steering vectors.
-        # This RIR is intended to be convolved *after* or *in addition to* the direct path?
+        # This RIR is intended to be convolved *after* or *in addition to*
+        # the direct path?
         # Standard approach: The RIR *contains* the direct path.
-        # But our `DataMixer` already calculates precise sub-sample delays for the direct path.
+        # But our `DataMixer` already calculates precise sub-sample delays
+        # for the direct path.
         # If we convolve with this RIR, we might double-up or smear the direct path.
-        
         # STRATEGY: This generator will produce ONLY the "Tail" (Reverb).
         # The DataMixer will mix Direct + Reverb.
         

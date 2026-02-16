@@ -1,13 +1,14 @@
 import numpy as np
-import scipy.signal
+
+from src.noise_models import ColoredNoise, RainNoise, WhiteNoise
 from src.spatial.physics import (
-    calculate_steering_vector,
+    apply_subsample_shifts,
     azimuth_elevation_to_vector,
-    apply_subsample_shifts
+    calculate_steering_vector,
 )
-from src.utils import CONFIG
-from src.noise_models import WhiteNoise, ColoredNoise, RainNoise
 from src.spatial.reverb import ReverbGenerator
+from src.utils import CONFIG
+
 
 class DataMixer:
     """
@@ -31,12 +32,19 @@ class DataMixer:
             
         self.reverb = ReverbGenerator(sample_rate)
             
-    def spatialise_signal(self, mono_signal: np.ndarray, azimuth_deg: float, elevation_deg: float = 0.0, 
-                          add_reverb: bool = False, rt60: float = 0.5, direct_ratio: float = 0.5) -> np.ndarray:
+    def spatialise_signal(
+        self,
+        mono_signal: np.ndarray,
+        azimuth_deg: float,
+        elevation_deg: float = 0.0,
+        add_reverb: bool = False,
+        rt60: float = 0.5,
+        direct_ratio: float = 0.5,
+    ) -> np.ndarray:
         """
         Converts a mono signal into a multichannel signal by simulating
         propagation delays to the microphone array. Optionally adds reverb.
-        
+
         Args:
             mono_signal: (N_samples,) 1D array.
             azimuth_deg: Source direction in XY plane.
@@ -45,7 +53,7 @@ class DataMixer:
             rt60: Reverberation time if adding reverb.
             direct_ratio: Ratio of direct signal amplitude vs reverb (0.0 to 1.0).
                           1.0 = Only direct (no reverb tail). 0.0 = Only reverb.
-            
+
         Returns:
             (N_channels, N_samples) multichannel array.
         """
@@ -62,7 +70,9 @@ class DataMixer:
         # 2. Generate Reverb Tail
         # Use stochastic model for now (uncorrelated or partially correlated)
         n_channels = len(self.mic_positions)
-        rir_tail = self.reverb.generate_stochastic_rir(n_channels, rt60=rt60, direct_ratio=direct_ratio)
+        rir_tail = self.reverb.generate_stochastic_rir(
+            n_channels, rt60=rt60, direct_ratio=direct_ratio
+        )
         
         # 3. Convolve
         reverberant_tail = self.reverb.apply_reverb(mono_signal, rir_tail)
@@ -84,17 +94,19 @@ class DataMixer:
             
         return direct_signal + reverberant_tail
 
-    def apply_sensor_perturbation(self, signal: np.ndarray, gain_std_db: float = 1.0, phase_std_deg: float = 5.0) -> np.ndarray:
+    def apply_sensor_perturbation(
+        self,
+        signal: np.ndarray,
+        gain_std_db: float = 1.0,
+        phase_std_deg: float = 5.0,
+    ) -> np.ndarray:
         """
         Simulates hardware mismatch by applying random gain and phase offsets.
-        
+
         Args:
             signal: (N_channels, N_samples)
             gain_std_db: Standard deviation of gain error in dB.
-            phase_std_deg: Standard deviation of phase error in degrees (at 1kHz? No, usually constant phase shift or delay).
-                           Let's assume random small time delay jitter for broadband phase error.
-                           Or strictly phase shift (Hilbert).
-                           For simplicity/speed: Gain only + small time delay jitter.
+            phase_std_deg: Std of phase error (simulated via time jitter).
         """
         n_channels = signal.shape[0]
         
@@ -104,22 +116,26 @@ class DataMixer:
         
         # Time Jitter (Phase mismatch)
         # 5 degrees at 250kHz is tiny. 5 degrees at 1kHz is larger.
-        # Let's use time jitter: +/- 1 sample (4 microseconds) covers a lot of phase at high freq.
+        # Let's use time jitter: +/- 1 sample (4 microseconds) covers
+        # a lot of phase at high freq.
         # jitter_samples = np.random.uniform(-0.5, 0.5, n_channels)
         # We can use apply_subsample_shifts for this!
-        
+
         # Convert phase_std at 50kHz (center freq) to time?
         # 360 deg = 1/50k = 20us. 5 deg = (5/360)*20us = 0.27us.
         # This is very small.
-        jitter_seconds = np.random.normal(0, 1e-6, n_channels) # 1 microsecond jitter
-        
+        jitter_seconds = np.random.normal(0, 1e-6, n_channels)  # 1 microsecond jitter
+
         # Apply jitter
-        signal_jittered = apply_subsample_shifts(signal, jitter_seconds, self.sample_rate)
-        
+        signal_jittered = apply_subsample_shifts(
+            signal, jitter_seconds, self.sample_rate
+        )
         # Apply gain
         return signal_jittered * gains_lin[:, None]
 
-    def mix_signals(self, signal1: np.ndarray, signal2: np.ndarray, snr_db: float) -> np.ndarray:
+    def mix_signals(
+        self, signal1: np.ndarray, signal2: np.ndarray, snr_db: float
+    ) -> np.ndarray:
         """
         Mixes signal2 into signal1 with a specific Signal-to-Noise Ratio (SNR).
         Handles both mono (1D) and multichannel (2D) inputs.
@@ -179,7 +195,13 @@ class DataMixer:
             
         return mixed
 
-    def add_noise(self, signal: np.ndarray, noise_type: str = 'white', snr_db: float = 20.0, **kwargs) -> np.ndarray:
+    def add_noise(
+        self,
+        signal: np.ndarray,
+        noise_type: str = "white",
+        snr_db: float = 20.0,
+        **kwargs,
+    ) -> np.ndarray:
         """
         Adds synthetic noise to the signal.
         """

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class NoiseGenerator:
     """
     Base class for noise generation.
@@ -15,9 +16,13 @@ class WhiteNoise(NoiseGenerator):
     Generates Additive White Gaussian Noise (AWGN).
     Simulates thermal sensor noise.
     """
-    def generate(self, duration: float, num_channels: int = 1, std: float = 1.0) -> np.ndarray:
+
+    def generate(
+        self, duration: float, num_channels: int = 1, std: float = 1.0
+    ) -> np.ndarray:
         n_samples = int(duration * self.sample_rate)
         return np.random.normal(0, std, size=(num_channels, n_samples))
+
 
 class ColoredNoise(NoiseGenerator):
     """
@@ -26,19 +31,22 @@ class ColoredNoise(NoiseGenerator):
     alpha=1: Pink noise (Wind-like)
     alpha=2: Brown noise (Heavier wind/rumble)
     """
-    def __init__(self, sample_rate: int = 250000, color: str = 'pink'):
+
+    def __init__(self, sample_rate: int = 250000, color: str = "pink"):
         super().__init__(sample_rate)
         self.color = color.lower()
-        if self.color == 'pink':
+        if self.color == "pink":
             self.alpha = 1.0
-        elif self.color == 'brown':
+        elif self.color == "brown":
             self.alpha = 2.0
-        elif self.color == 'white':
+        elif self.color == "white":
             self.alpha = 0.0
         else:
             raise ValueError(f"Unknown noise color: {color}")
 
-    def generate(self, duration: float, num_channels: int = 1, std: float = 1.0) -> np.ndarray:
+    def generate(
+        self, duration: float, num_channels: int = 1, std: float = 1.0
+    ) -> np.ndarray:
         n_samples = int(duration * self.sample_rate)
         
         # Method: Spectral shaping
@@ -79,7 +87,14 @@ class RainNoise(NoiseGenerator):
     """
     Simulates rain as sparse impulsive noise.
     """
-    def generate(self, duration: float, num_channels: int = 1, rate_hz: float = 10.0, amplitude: float = 1.0) -> np.ndarray:
+
+    def generate(
+        self,
+        duration: float,
+        num_channels: int = 1,
+        rate_hz: float = 10.0,
+        amplitude: float = 1.0,
+    ) -> np.ndarray:
         """
         Args:
             rate_hz: Average number of drops per second.

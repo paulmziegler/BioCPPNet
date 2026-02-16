@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def calculate_sisdr(reference: np.ndarray, estimate: np.ndarray) -> float:
     """
     Calculates Scale-Invariant Signal-to-Distortion Ratio (SI-SDR).

@@ -2,30 +2,39 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class BioCPPNet(nn.Module):
     """
     U-Net architecture for bioacoustic source separation.
     Designed for 250kHz sampling rates.
     """
-    def __init__(self, in_channels: int = 1, out_channels: int = 1, hidden_dim: int = 64):
+    def __init__(
+        self, in_channels: int = 1, out_channels: int = 1, hidden_dim: int = 64
+    ):
         super().__init__()
-        
+
         # Encoder (Contracting Path)
         self.enc1 = self._conv_block(in_channels, hidden_dim)
         self.enc2 = self._conv_block(hidden_dim, hidden_dim * 2)
         self.enc3 = self._conv_block(hidden_dim * 2, hidden_dim * 4)
-        
+
         # Bottleneck
         self.bottleneck = self._conv_block(hidden_dim * 4, hidden_dim * 8)
-        
+
         # Decoder (Expanding Path)
-        self.up3 = nn.ConvTranspose2d(hidden_dim * 8, hidden_dim * 4, kernel_size=2, stride=2)
+        self.up3 = nn.ConvTranspose2d(
+            hidden_dim * 8, hidden_dim * 4, kernel_size=2, stride=2
+        )
         self.dec3 = self._conv_block(hidden_dim * 8, hidden_dim * 4)
-        
-        self.up2 = nn.ConvTranspose2d(hidden_dim * 4, hidden_dim * 2, kernel_size=2, stride=2)
+
+        self.up2 = nn.ConvTranspose2d(
+            hidden_dim * 4, hidden_dim * 2, kernel_size=2, stride=2
+        )
         self.dec2 = self._conv_block(hidden_dim * 4, hidden_dim * 2)
-        
-        self.up1 = nn.ConvTranspose2d(hidden_dim * 2, hidden_dim, kernel_size=2, stride=2)
+
+        self.up1 = nn.ConvTranspose2d(
+            hidden_dim * 2, hidden_dim, kernel_size=2, stride=2
+        )
         self.dec1 = self._conv_block(hidden_dim * 2, hidden_dim)
         
         self.final = nn.Conv2d(hidden_dim, out_channels, kernel_size=1)

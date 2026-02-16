@@ -1,10 +1,12 @@
 import numpy as np
+
 from src.spatial.physics import (
-    calculate_steering_vector,
+    apply_subsample_shifts,
     azimuth_elevation_to_vector,
-    apply_subsample_shifts
+    calculate_steering_vector,
 )
 from src.utils import CONFIG
+
 
 class Beamformer:
     """
@@ -42,16 +44,21 @@ class Beamformer:
         # Placeholder
         return 0.0
 
-    def delay_and_sum(self, multichannel_signal: np.ndarray, azimuth_deg: float, elevation_deg: float = 0.0) -> np.ndarray:
+    def delay_and_sum(
+        self,
+        multichannel_signal: np.ndarray,
+        azimuth_deg: float,
+        elevation_deg: float = 0.0,
+    ) -> np.ndarray:
         """
         Performs Delay-and-Sum beamforming towards a specific azimuth.
         Reverses the propagation delays to align signals from the target direction.
-        
+
         Args:
             multichannel_signal: Input signal (Channels x Time).
             azimuth_deg: Target direction in degrees.
             elevation_deg: Target elevation.
-            
+
         Returns:
             Beamformed single-channel signal.
         """
@@ -73,7 +80,9 @@ class Beamformer:
         correction_delays = distance_diffs / self.speed_of_sound
         
         # 3. Apply correction shifts
-        aligned_signals = apply_subsample_shifts(multichannel_signal, correction_delays, self.sample_rate)
+        aligned_signals = apply_subsample_shifts(
+            multichannel_signal, correction_delays, self.sample_rate
+        )
         
         # 4. Sum (and normalize by number of channels)
         beamformed_signal = np.mean(aligned_signals, axis=0)

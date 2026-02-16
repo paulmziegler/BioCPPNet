@@ -8,15 +8,15 @@
 ## System Overview
 
 ```mermaid
-graph TD
-    Data[Raw Audio Data] --> Mixer[DataMixer: Synthetic Mixing]
-    Mixer --> Mixed[Mixed Audio]
-    Mixed --> Beam[Beamformer: Spatial Filtering]
-    Beam --> PreProcess[Denoising Autoencoder (DAE)]
-    PreProcess --> Clean[Denoised Signal]
-    Clean --> Model[BioCPPNet: U-Net Separation]
-    Model --> Output[Isolated Sources]
-    Output --> Metric[SI-SDR Metric]
+flowchart TD
+    Data["Raw Audio Data"] --> Mixer["DataMixer: Synthetic Mixing"]
+    Mixer --> Mixed["Mixed Audio"]
+    Mixed --> Beam["Beamformer: Spatial Filtering"]
+    Beam --> PreProcess["Denoising Autoencoder (DAE)"]
+    PreProcess --> Clean["Denoised Signal"]
+    Clean --> Model["BioCPPNet: U-Net Separation"]
+    Model --> Output["Isolated Sources"]
+    Output --> Metric["SI-SDR Metric"]
     Clean --> Metric
 ```
 
@@ -49,9 +49,9 @@ classDiagram
         +generate(duration)
     }
 
-    DataMixer ..> NoiseGenerator : Uses
-    DataMixer ..> BioCPPNet : Generates Training Data
-    Beamformer ..> BioCPPNet : Pre-processes Input
+    DataMixer ..> NoiseGenerator : "Uses"
+    DataMixer ..> BioCPPNet : "Generates Training Data"
+    Beamformer ..> BioCPPNet : "Pre-processes Input"
 ```
 
 ## Directory Structure

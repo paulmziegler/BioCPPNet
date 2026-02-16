@@ -1,0 +1,50 @@
+project:
+  name: "BioCPPNet"
+  version: "0.1.0"
+  description: "Bioacoustic Cocktail Party Problem Solver"
+
+directories:
+  src: "src"
+  tests: "tests"
+  docs: "docs"
+  results: "results"
+  test_results: "unit test results"
+  logs: "logs"
+  data: "data"
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+testing:
+  report_file: "results.xml"
+  coverage_report: "htmlcov"
+  save_plots: true  # Whether to save plots during testing
+  plot_format: "png"
+
+audio:
+  sample_rate: 250000
+  n_fft: 1024
+  hop_length: 512
+  win_length: 1024
+
+array:
+  type: "custom"
+  speed_of_sound: 343.0
+  channels: 4
+  geometry:
+    - [0.00, 0.00, 0.00]
+    - [0.04, 0.00, 0.00]
+    - [0.08, 0.00, 0.00]
+    - [0.12, 0.00, 0.00]
+
+model:
+  learning_rate: 0.001
+  batch_size: 32
+  epochs: 100
+  architecture: "U-Net"
+
+training:
+  data_path: "data/processed"
+  checkpoint_dir: "results/checkpoints"

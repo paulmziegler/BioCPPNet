@@ -1,0 +1,9 @@
+click
+pydantic
+PyYAML
+librosa
+torch
+scipy
+numpy
+soundfile
+matplotlib

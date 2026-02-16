@@ -1,0 +1,3 @@
+2026-02-16 08:36:58 - test_plotting - INFO - Starting plot generation test...
+2026-02-16 08:36:59 - test_plotting - INFO - Saving plot to: unit test results\session_2026-02-16_08-36-59\test_sine_wave.png
+2026-02-16 08:37:00 - test_plotting - INFO - Plot generation test passed.

@@ -1,0 +1,6 @@
+2026-02-16 10:34:36 - test_noise_robustness - INFO - Noise: white, SNR In: 0.05dB, SNR Out: 6.02dB, Gain: 5.98dB
+2026-02-16 10:34:36 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-16_10-34-36\robustness_noise_white.png
+2026-02-16 10:34:36 - test_noise_robustness - INFO - Noise: pink, SNR In: 0.00dB, SNR Out: 5.89dB, Gain: 5.89dB
+2026-02-16 10:34:37 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-16_10-34-36\robustness_noise_pink.png
+2026-02-16 10:34:37 - test_noise_robustness - INFO - Noise: rain, SNR In: 0.62dB, SNR Out: 5.98dB, Gain: 5.35dB
+2026-02-16 10:34:37 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-16_10-34-36\robustness_noise_rain.png

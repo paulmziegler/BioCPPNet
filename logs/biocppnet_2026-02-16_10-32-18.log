@@ -1,0 +1,14 @@
+2026-02-16 10:32:20 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_20Hz_cw.png
+2026-02-16 10:32:21 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_1000Hz_cw.png
+2026-02-16 10:32:22 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_15000Hz_cw.png
+2026-02-16 10:32:26 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_50000Hz_cw.png
+2026-02-16 10:32:26 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_20Hz_pulsed.png
+2026-02-16 10:32:27 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_1000Hz_pulsed.png
+2026-02-16 10:32:28 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_15000Hz_pulsed.png
+2026-02-16 10:32:30 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\beamforming_50000Hz_pulsed.png
+2026-02-16 10:32:30 - test_noise - INFO - White Noise PSD Slope: 0.0030 (Expected ~0.0)
+2026-02-16 10:32:30 - test_noise - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\noise_psd_white.png
+2026-02-16 10:32:30 - test_noise - INFO - Pink Noise PSD Slope: -0.9983 (Expected ~ -1.0)
+2026-02-16 10:32:31 - test_noise - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\noise_psd_pink.png
+2026-02-16 10:32:31 - test_noise - INFO - Brown Noise PSD Slope: -2.0101 (Expected ~ -2.0)
+2026-02-16 10:32:32 - test_noise - INFO - Saved plot to unit test results\session_2026-02-16_10-32-18\noise_psd_brown.png

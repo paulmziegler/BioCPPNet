@@ -86,11 +86,11 @@ BioaccousticCPP/
 -   **Output:** Multichannel WAV files.
 
 ### 2. Core Models
--   **BioCPPNet (`src/models/unet.py`):** U-Net architecture for source separation.
--   **Denoising Autoencoder (`src/models/dae.py`):** Optional pre-processing stage for noise reduction.
+-   **[[Model_UNet|BioCPPNet U-Net]] (`src/models/unet.py`):** The main source separation model.
+-   **[[Model_DAE|Denoising Autoencoder]] (`src/models/dae.py`):** Optional pre-processing stage for noise reduction.
 
 ### 3. Spatial Processing (`src/spatial/beamforming.py`)
--   **Algorithm:** MUSIC for DoA estimation (Planned).
+-   **Algorithm:** [[Algorithm_GCC_PHAT|GCC-PHAT]] for TDOA/DoA estimation.
 -   **Beamforming:** Delay-and-Sum.
 -   **Physics:** Sub-sample delay simulation via FFT phase shifting.
 -   **Hardware:** 16-channel array (simulated or miniDSP UMA-16).

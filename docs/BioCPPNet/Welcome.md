@@ -4,8 +4,14 @@
 
 ## 📂 Navigation
 
-- [[architecture|Architecture Overview]]: Understanding the system design, folder structure, and Python modules.
-- [[KANBAN|Project Kanban Board]]: Track tasks, bugs, and feature requests.
+-   [[architecture|Architecture Overview]]: Understanding the system design, folder structure, and Python modules.
+-   [[Signal_Specification|Signal Specification]]: Sampling rates (250kHz) and data formats.
+-   [[KANBAN|Project Kanban Board]]: Track tasks, bugs, and feature requests.
+
+### Core Models & Algorithms
+-   [[Model_UNet|BioCPPNet U-Net]]: The main source separation model.
+-   [[Model_DAE|Denoising Autoencoder]]: The noise reduction pre-processor.
+-   [[Algorithm_GCC_PHAT|GCC-PHAT]]: The blind beamforming and TDOA algorithm.
 
 ## 🚀 Getting Started
 

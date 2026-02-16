@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "architecture.md",
+                "file": "Data_Augmentation_Strategy.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "architecture"
+              "title": "Data_Augmentation_Strategy"
             }
           }
         ]
@@ -185,10 +185,13 @@
   },
   "active": "7af779bf5df8bf47",
   "lastOpenFiles": [
+    "architecture.md",
+    "Data_Augmentation_Strategy.md",
     "Signal_Specification.md",
+    "Model_UNet.md",
+    "Model_DAE.md",
     "KANBAN.md",
     "Welcome.md",
-    "architecture.md",
     "Untitled 1.canvas",
     "Untitled.canvas",
     "Top.base",

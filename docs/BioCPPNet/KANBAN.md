@@ -9,6 +9,7 @@ kanban-plugin: basic
 - [ ] Identify and download public mono datasets (e.g., Earth Species Project) for spatialization
 - [ ] Develop interactive demo (Gradio) for multichannel file upload
 - [ ] Investigate super-resolution techniques for TDOA estimation
+- [ ] Implement Atmospheric Absorption (Frequency-dependent attenuation)
 
 
 ## Signal Pipeline
@@ -18,18 +19,17 @@ kanban-plugin: basic
 - [x] Create geometry-based delay calculation logic (Steering Vectors)
 - [x] Verify simulation physics (sine wave delay test)
 - [x] Handle high sampling rates (up to 250kHz)
-- [ ] Implement Noise Models:
-    - [x] Independent Sensor Noise (AWGN)
-    - [x] Directional Point-Source Interference (Cocktail Party)
-    - [x] Wind Noise simulation (Pink/Brown noise)
-    - [x] Rain Noise impact (Impulsive noise)
-    - [ ] Ambient/Diffuse Noise (Bessel-based correlation)
-- [ ] Implement Outdoor Environmental Factors:
-    - [ ] Atmospheric Absorption (Frequency-dependent attenuation)
+- [x] Implement Noise Models (White, Pink, Rain, Cocktail Party)
+- [ ] Implement Reality Augmentations:
+    - [ ] **Multi-Source Mixing:** Support arbitrary N sources.
+    - [ ] **Reverberation:** Convolution with synthetic/real RIRs.
+    - [ ] **Sensor Perturbation:** Random gain/phase mismatch per channel.
+    - [ ] **Source Movement:** Trajectory-based delays.
 
 
 ## Modeling
 
+- [ ] Create PyTorch `OnlineDataset` for on-the-fly augmentation
 - [ ] Implement Denoising Autoencoder (DAE) for initial noise reduction
 - [ ] Reimplement BioCPPNet U-Net architecture
 - [ ] Implement L1 Waveform Loss

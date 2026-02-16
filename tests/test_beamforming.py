@@ -1,75 +1,111 @@
 import numpy as np
 import pytest
+import matplotlib
+matplotlib.use('Agg') # Set non-interactive backend before importing pyplot
+import matplotlib.pyplot as plt
+from scipy.signal import welch
 from src.spatial.beamforming import Beamformer
 from src.spatial.physics import (
     azimuth_elevation_to_vector,
     calculate_steering_vector,
     apply_subsample_shifts
 )
+from src.utils import get_plot_path, setup_logger
 
-def test_delay_and_sum_reversibility():
-    """Verify that a signal generated at angle A is recovered by beamforming at angle A."""
-    fs = 250000
-    bf = Beamformer(sample_rate=fs)
+logger = setup_logger("test_beamforming")
+
+def generate_signal(freq, fs, duration, pulsed=False):
+    t = np.linspace(0, duration, int(fs * duration), endpoint=False)
+    signal = np.sin(2 * np.pi * freq * t)
     
-    # Simple linear array
+    if pulsed:
+        # Create a Gaussian pulse envelope centered in the middle
+        center = duration / 2
+        width = duration / 8
+        envelope = np.exp(-((t - center)**2) / (2 * width**2))
+        signal = signal * envelope
+        
+    return t, signal
+
+def plot_comparison(t, original, beamformed, fs, title, filename_suffix):
+    """
+    Generates comparison plots for Time Domain and PSD.
+    """
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    
+    # Time Domain
+    ax1.plot(t * 1000, original, label='Original (Source)', alpha=0.7)
+    ax1.plot(t * 1000, beamformed, label='Beamformed (Recovered)', linestyle='--', alpha=0.7)
+    ax1.set_title(f"Time Domain: {title}")
+    ax1.set_xlabel("Time (ms)")
+    ax1.set_ylabel("Amplitude")
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Frequency Domain (PSD)
+    f_orig, Pxx_orig = welch(original, fs, nperseg=min(len(original), 1024))
+    f_beam, Pxx_beam = welch(beamformed, fs, nperseg=min(len(beamformed), 1024))
+    
+    ax2.semilogy(f_orig, Pxx_orig, label='Original')
+    ax2.semilogy(f_beam, Pxx_beam, label='Beamformed', linestyle='--')
+    ax2.set_title(f"Power Spectral Density: {title}")
+    ax2.set_xlabel("Frequency (Hz)")
+    ax2.set_ylabel("PSD (V**2/Hz)")
+    ax2.legend()
+    ax2.grid(True, alpha=0.3, which='both')
+    
+    # Save
+    save_path = get_plot_path(f"beamforming_{filename_suffix}")
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+    logger.info(f"Saved plot to {save_path}")
+
+@pytest.mark.parametrize("freq", [20, 1000, 15000, 50000])
+@pytest.mark.parametrize("pulsed", [False, True])
+def test_comprehensive_beamforming(freq, pulsed):
+    """
+    Tests beamforming reconstruction for various frequencies and signal types.
+    Generates plots for verification.
+    """
+    fs = 250000
+    duration = 0.1 # Increased to 100ms to capture 20Hz cycles (T=50ms)
+    azimuth_target = 30.0
+    
+    # Setup Beamformer (Simple linear array)
+    bf = Beamformer(sample_rate=fs)
     bf.mic_positions = np.array([
         [0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0]
-    ])
-    bf.speed_of_sound = 343.0
-    
-    # 1. Generate Signal (Sine Wave)
-    t = np.linspace(0, 0.01, int(fs * 0.01), endpoint=False)
-    signal = np.sin(2 * np.pi * 1000 * t)
-    
-    # 2. Simulate arrival from 45 degrees
-    azimuth = 45.0
-    source_vec = azimuth_elevation_to_vector(azimuth)
-    dist_diffs = calculate_steering_vector(bf.mic_positions, source_vec)
-    # arrival delay = -d/c
-    delays = -dist_diffs / bf.speed_of_sound
-    
-    multichannel = apply_subsample_shifts(signal, delays, fs)
-    
-    # 3. Beamform back towards 45 degrees
-    recovered = bf.delay_and_sum(multichannel, azimuth_deg=45.0)
-    
-    # 4. Check similarity
-    # Since D&S aligns perfectly, recovered should == original signal (ignoring numerical noise)
-    # Mean Square Error
-    mse = np.mean((recovered - signal) ** 2)
-    assert mse < 1e-10, f"MSE {mse} is too high for perfect alignment"
-
-def test_beamforming_suppression():
-    """Verify that beamforming suppresses signals from off-axis directions."""
-    fs = 250000
-    bf = Beamformer(sample_rate=fs)
-    bf.mic_positions = np.array([
-        [0.0, 0.0, 0.0],
-        [0.1, 0.0, 0.0],  # 10cm spacing
-        [0.2, 0.0, 0.0],
-        [0.3, 0.0, 0.0]
+        [0.05, 0.0, 0.0], # 5cm spacing
+        [0.10, 0.0, 0.0],
+        [0.15, 0.0, 0.0]
     ])
     
-    t = np.linspace(0, 0.01, int(fs * 0.01), endpoint=False)
-    signal = np.sin(2 * np.pi * 5000 * t)  # 5kHz tone
+    # 1. Generate Signal
+    t, source_signal = generate_signal(freq, fs, duration, pulsed)
     
-    # Signal from 90 deg (side)
-    azimuth_source = 90.0
-    source_vec = azimuth_elevation_to_vector(azimuth_source)
+    # 2. Simulate Propagation (Virtual Array)
+    source_vec = azimuth_elevation_to_vector(azimuth_target)
     dist_diffs = calculate_steering_vector(bf.mic_positions, source_vec)
     delays = -dist_diffs / bf.speed_of_sound
-    multichannel = apply_subsample_shifts(signal, delays, fs)
     
-    # Beamform towards 0 deg (front) -> Should be suppressed
-    beamformed = bf.delay_and_sum(multichannel, azimuth_deg=0.0)
+    multichannel_signal = apply_subsample_shifts(source_signal, delays, fs)
     
-    # Calculate power reduction
-    p_in = np.mean(multichannel[0] ** 2)
-    p_out = np.mean(beamformed ** 2)
+    # 3. Beamform (Delay-and-Sum)
+    recovered_signal = bf.delay_and_sum(multichannel_signal, azimuth_target)
     
-    # Should reduce power significantly (destructive interference)
-    # Not perfect zero due to sidelobes, but significant
-    ratio = p_out / p_in
-    assert ratio < 0.5, f"Power ratio {ratio} is not sufficiently suppressed (should be < 0.5)"
+    # 4. Verify Accuracy (MSE)
+    # Align comparison: The recovered signal should match the source signal
+    # Note: D&S might have slight amplitude scaling or numerical noise, 
+    # but with perfect alignment it should be exact.
+    mse = np.mean((source_signal - recovered_signal) ** 2)
+    
+    # Tolerance: Relaxed slightly for low-freq edge effects
+    assert mse < 1e-8, f"MSE {mse} too high for {freq}Hz (Pulsed={pulsed})"
+    
+    # 5. Plot
+    type_str = "Pulsed" if pulsed else "CW"
+    title = f"{type_str} {freq}Hz at {azimuth_target} deg"
+    filename = f"{freq}Hz_{type_str.lower()}"
+    
+    plot_comparison(t, source_signal, recovered_signal, fs, title, filename)

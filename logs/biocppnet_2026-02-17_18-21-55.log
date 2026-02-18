@@ -1,0 +1,63 @@
+2026-02-17 18:21:55 - training - INFO - Using device: cuda
+2026-02-17 18:21:56 - training - INFO - Starting training...
+2026-02-17 18:31:08 - training - INFO - Epoch 1 Completed. Avg Loss: 0.0320
+2026-02-17 18:40:12 - training - INFO - Epoch 2 Completed. Avg Loss: 0.0153
+2026-02-17 18:49:24 - training - INFO - Epoch 3 Completed. Avg Loss: 0.0136
+2026-02-17 18:58:38 - training - INFO - Epoch 4 Completed. Avg Loss: 0.0121
+2026-02-17 19:07:49 - training - INFO - Epoch 5 Completed. Avg Loss: 0.0117
+2026-02-17 19:07:49 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_5.pt
+2026-02-17 19:16:53 - training - INFO - Epoch 6 Completed. Avg Loss: 0.0110
+2026-02-17 19:25:57 - training - INFO - Epoch 7 Completed. Avg Loss: 0.0109
+2026-02-17 19:35:01 - training - INFO - Epoch 8 Completed. Avg Loss: 0.0108
+2026-02-17 19:45:00 - training - INFO - Epoch 9 Completed. Avg Loss: 0.0100
+2026-02-17 19:55:37 - training - INFO - Epoch 10 Completed. Avg Loss: 0.0104
+2026-02-17 19:55:37 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_10.pt
+2026-02-17 20:06:18 - training - INFO - Epoch 11 Completed. Avg Loss: 0.0099
+2026-02-17 20:16:30 - training - INFO - Epoch 12 Completed. Avg Loss: 0.0099
+2026-02-17 20:26:30 - training - INFO - Epoch 13 Completed. Avg Loss: 0.0097
+2026-02-17 20:36:54 - training - INFO - Epoch 14 Completed. Avg Loss: 0.0097
+2026-02-17 20:47:13 - training - INFO - Epoch 15 Completed. Avg Loss: 0.0099
+2026-02-17 20:47:13 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_15.pt
+2026-02-17 20:57:36 - training - INFO - Epoch 16 Completed. Avg Loss: 0.0100
+2026-02-17 21:07:56 - training - INFO - Epoch 17 Completed. Avg Loss: 0.0101
+2026-02-17 21:18:20 - training - INFO - Epoch 18 Completed. Avg Loss: 0.0099
+2026-02-17 21:28:45 - training - INFO - Epoch 19 Completed. Avg Loss: 0.0098
+2026-02-17 21:38:59 - training - INFO - Epoch 20 Completed. Avg Loss: 0.0097
+2026-02-17 21:38:59 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_20.pt
+2026-02-17 21:48:51 - training - INFO - Epoch 21 Completed. Avg Loss: 0.0098
+2026-02-17 21:58:43 - training - INFO - Epoch 22 Completed. Avg Loss: 0.0097
+2026-02-17 22:08:36 - training - INFO - Epoch 23 Completed. Avg Loss: 0.0095
+2026-02-17 22:18:30 - training - INFO - Epoch 24 Completed. Avg Loss: 0.0096
+2026-02-17 22:28:22 - training - INFO - Epoch 25 Completed. Avg Loss: 0.0094
+2026-02-17 22:28:22 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_25.pt
+2026-02-17 22:38:15 - training - INFO - Epoch 26 Completed. Avg Loss: 0.0098
+2026-02-17 22:48:07 - training - INFO - Epoch 27 Completed. Avg Loss: 0.0097
+2026-02-17 22:57:56 - training - INFO - Epoch 28 Completed. Avg Loss: 0.0094
+2026-02-17 23:07:49 - training - INFO - Epoch 29 Completed. Avg Loss: 0.0093
+2026-02-17 23:17:42 - training - INFO - Epoch 30 Completed. Avg Loss: 0.0092
+2026-02-17 23:17:42 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_30.pt
+2026-02-17 23:27:34 - training - INFO - Epoch 31 Completed. Avg Loss: 0.0098
+2026-02-17 23:37:25 - training - INFO - Epoch 32 Completed. Avg Loss: 0.0094
+2026-02-17 23:47:24 - training - INFO - Epoch 33 Completed. Avg Loss: 0.0095
+2026-02-17 23:57:21 - training - INFO - Epoch 34 Completed. Avg Loss: 0.0091
+2026-02-18 00:07:20 - training - INFO - Epoch 35 Completed. Avg Loss: 0.0096
+2026-02-18 00:07:21 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_35.pt
+2026-02-18 00:17:20 - training - INFO - Epoch 36 Completed. Avg Loss: 0.0093
+2026-02-18 00:27:18 - training - INFO - Epoch 37 Completed. Avg Loss: 0.0091
+2026-02-18 00:37:17 - training - INFO - Epoch 38 Completed. Avg Loss: 0.0093
+2026-02-18 00:47:16 - training - INFO - Epoch 39 Completed. Avg Loss: 0.0094
+2026-02-18 00:57:09 - training - INFO - Epoch 40 Completed. Avg Loss: 0.0094
+2026-02-18 00:57:09 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_40.pt
+2026-02-18 01:07:01 - training - INFO - Epoch 41 Completed. Avg Loss: 0.0094
+2026-02-18 01:16:54 - training - INFO - Epoch 42 Completed. Avg Loss: 0.0094
+2026-02-18 01:26:48 - training - INFO - Epoch 43 Completed. Avg Loss: 0.0090
+2026-02-18 01:36:38 - training - INFO - Epoch 44 Completed. Avg Loss: 0.0092
+2026-02-18 01:46:29 - training - INFO - Epoch 45 Completed. Avg Loss: 0.0089
+2026-02-18 01:46:29 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_45.pt
+2026-02-18 01:56:20 - training - INFO - Epoch 46 Completed. Avg Loss: 0.0093
+2026-02-18 02:06:15 - training - INFO - Epoch 47 Completed. Avg Loss: 0.0091
+2026-02-18 02:16:07 - training - INFO - Epoch 48 Completed. Avg Loss: 0.0089
+2026-02-18 02:26:00 - training - INFO - Epoch 49 Completed. Avg Loss: 0.0091
+2026-02-18 02:35:55 - training - INFO - Epoch 50 Completed. Avg Loss: 0.0091
+2026-02-18 02:35:55 - training - INFO - Saved checkpoint to results/checkpoints\dae_epoch_50.pt
+2026-02-18 02:35:56 - training - INFO - Training completed. Loss plot saved to unit test results\session_2026-02-17_18-21-55\training_loss_dae.png

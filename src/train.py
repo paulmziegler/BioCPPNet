@@ -4,16 +4,18 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import yaml
 from pathlib import Path
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+import numpy as np
 
 from src.data_loader import BioAcousticDataset
 from src.models.dae import SpectrogramDAE
-from src.utils import CONFIG, setup_logger
+from src.utils import CONFIG, setup_logger, get_plot_path
 
 logger = setup_logger("training")
 
 def train():
     # 1. Load Config
-    # (Already loaded by utils, but let's grab specific sections)
     audio_cfg = CONFIG.get("audio", {})
     model_cfg = CONFIG.get("model", {})
     train_cfg = CONFIG.get("training", {})
@@ -51,6 +53,7 @@ def train():
     Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
     
     logger.info("Starting training...")
+    history = []
     
     for epoch in range(1, epochs + 1):
         model.train()
@@ -59,7 +62,10 @@ def train():
         # Create iterator for this epoch
         iterator = iter(loader)
         
-        for step in range(steps_per_epoch):
+        # Progress bar for steps
+        pbar = tqdm(range(steps_per_epoch), desc=f"Epoch {epoch}/{epochs}", unit="step")
+        
+        for step in pbar:
             try:
                 # Get batch: (B, C, T)
                 noisy_wav, clean_wav = next(iterator)
@@ -81,8 +87,6 @@ def train():
             clean_spec = model.wav_to_spectrogram(clean_flat)
             
             # Forward
-            # Input to model: Log-Magnitude Spectrogram
-            # Target: Log-Magnitude Spectrogram of CLEAN signal
             output_spec = model(noisy_spec)
             
             # Loss
@@ -95,10 +99,11 @@ def train():
             
             epoch_loss += loss.item()
             
-            if step % 10 == 0:
-                print(f"Epoch {epoch} [{step}/{steps_per_epoch}] Loss: {loss.item():.4f}", end="")
+            # Update progress bar
+            pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
                 
         avg_loss = epoch_loss / steps_per_epoch
+        history.append(avg_loss)
         logger.info(f"Epoch {epoch} Completed. Avg Loss: {avg_loss:.4f}")
         
         # Save Checkpoint
@@ -106,6 +111,19 @@ def train():
             path = os.path.join(checkpoint_dir, f"dae_epoch_{epoch}.pt")
             torch.save(model.state_dict(), path)
             logger.info(f"Saved checkpoint to {path}")
+
+    # 5. Plot Training Progress
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(1, epochs + 1), history, marker='o', linestyle='-')
+    plt.title("DAE Training Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("MSE Loss (Log-Spectrogram)")
+    plt.grid(True)
+    
+    # Save plot to results folder
+    plot_path = get_plot_path("training_loss_dae")
+    plt.savefig(plot_path)
+    logger.info(f"Training completed. Loss plot saved to {plot_path}")
 
 if __name__ == "__main__":
     train()

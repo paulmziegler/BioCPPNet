@@ -84,18 +84,15 @@ def mix_data():
 def train(config):
     """Train the BioCPPNet model."""
     click.echo(f"Starting training using config: {config}")
-    # Load hyperparams
-    params = load_config()
-    click.echo(f"Hyperparameters: {params.get('model', {})}")
     
-    # Import model
+    # Import and run training loop
     try:
-        from src.models.unet import BioCPPNet
-        model = BioCPPNet()
-        click.echo("Model initialized.")
-        # Training loop
-    except ImportError as e:
-        click.echo(f"Error importing BioCPPNet: {e}")
+        from src.train import train as run_training
+        run_training()
+    except Exception as e:
+        click.echo(f"Error during training: {e}")
+        # Re-raise for debugging if needed
+        raise e
 
 @cli.command()
 def evaluate():

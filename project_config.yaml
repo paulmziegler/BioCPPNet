@@ -28,6 +28,7 @@ audio:
   n_fft: 1024
   hop_length: 512
   win_length: 1024
+  duration: 1.0
 
 array:
   type: "custom"
@@ -41,10 +42,12 @@ array:
 
 model:
   learning_rate: 0.001
-  batch_size: 32
-  epochs: 100
-  architecture: "U-Net"
+  batch_size: 16
+  epochs: 50
+  architecture: "DAE" 
 
 training:
-  data_path: "data/processed"
+  steps_per_epoch: 100
   checkpoint_dir: "results/checkpoints"
+  save_interval: 5
+  device: "cuda" # or cpu

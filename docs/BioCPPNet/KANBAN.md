@@ -59,12 +59,12 @@ kanban
 ## Modeling
 
 - [x] **Create PyTorch `OnlineDataset` for on-the-fly augmentation**
-- [ ] Implement Denoising Autoencoder (DAE) for initial noise reduction
+- [x] **Implement Denoising Autoencoder (DAE) for initial noise reduction**
+- [x] **Setup training loop with YAML config**
 - [ ] Reimplement BioCPPNet U-Net architecture
 - [ ] Implement L1 Waveform Loss
 - [ ] Implement STFT L1 Loss
 - [ ] Implement Spectral Convergence Loss
-- [ ] Setup training loop with YAML config
 
 
 ## Array Processing

@@ -4,6 +4,36 @@ kanban-plugin: basic
 
 ---
 
+## Visual Board
+
+```mermaid
+kanban
+  Backlog
+    [Identify and download public mono datasets]
+    [Develop interactive demo (Gradio)]
+    [Investigate super-resolution techniques for TDOA]
+    [Implement Atmospheric Absorption]
+    [Implement Source Movement Trajectories]
+  Signal Pipeline
+    [Handle high sampling rates (250kHz)]
+    [Implement Noise Models]
+    [Multi-Source Mixing]
+    [Reverberation]
+    [Sensor Perturbation]
+  Modeling
+    [Create PyTorch OnlineDataset]
+    [Implement Denoising Autoencoder (DAE)]
+    [Reimplement BioCPPNet U-Net]
+    [Implement Loss Functions]
+    [Setup training loop]
+  Array Processing
+    [Implement Delay-and-Sum Beamforming]
+    [Implement Sub-sample Delay Estimation (GCC-PHAT)]
+    [Implement MUSIC algorithm]
+  Results
+    [SI-SDR Benchmarking]
+```
+
 ## Backlog
 
 - [ ] Identify and download public mono datasets (e.g., Earth Species Project) for spatialization
@@ -20,16 +50,15 @@ kanban-plugin: basic
 - [x] Verify simulation physics (sine wave delay test)
 - [x] Handle high sampling rates (up to 250kHz)
 - [x] Implement Noise Models (White, Pink, Rain, Cocktail Party)
-- [ ] Implement Reality Augmentations:
-    - [ ] **Multi-Source Mixing:** Support arbitrary N sources.
-    - [ ] **Reverberation:** Convolution with synthetic/real RIRs.
-    - [ ] **Sensor Perturbation:** Random gain/phase mismatch per channel.
-    - [ ] **Source Movement:** Trajectory-based delays.
+- [x] **Multi-Source Mixing:** Support arbitrary N sources.
+- [x] **Reverberation:** Convolution with synthetic/real RIRs.
+- [x] **Sensor Perturbation:** Random gain/phase mismatch per channel.
+- [ ] **Source Movement:** Trajectory-based delays.
 
 
 ## Modeling
 
-- [ ] Create PyTorch `OnlineDataset` for on-the-fly augmentation
+- [x] **Create PyTorch `OnlineDataset` for on-the-fly augmentation**
 - [ ] Implement Denoising Autoencoder (DAE) for initial noise reduction
 - [ ] Reimplement BioCPPNet U-Net architecture
 - [ ] Implement L1 Waveform Loss

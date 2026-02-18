@@ -228,6 +228,13 @@ class DataMixer:
             noise = noise[0] # Take first channel
             
         # Use existing mix logic
+        # Ensure noise length matches signal length exactly (fix off-by-one errors)
+        if noise.shape[-1] > signal.shape[-1]:
+            noise = noise[..., :signal.shape[-1]]
+        elif noise.shape[-1] < signal.shape[-1]:
+            pad_len = signal.shape[-1] - noise.shape[-1]
+            noise = np.pad(noise, ((0,0), (0, pad_len)))
+            
         return self.mix_signals(signal, noise, snr_db)
 
     def _calculate_power(self, signal: np.ndarray) -> float:

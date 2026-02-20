@@ -48,10 +48,20 @@ classDiagram
     class NoiseGenerator {
         +generate(duration)
     }
+    
+    class DoAEstimator {
+        +estimate(signal)
+    }
+    
+    class GCCPHAT {
+        +estimate(signal)
+    }
 
     DataMixer ..> NoiseGenerator : "Uses"
     DataMixer ..> BioCPPNet : "Generates Training Data"
     Beamformer ..> BioCPPNet : "Pre-processes Input"
+    GCCPHAT --|> DoAEstimator : "Inherits"
+    Beamformer ..> GCCPHAT : "Uses for Blind Beamforming"
 ```
 
 ## Directory Structure
@@ -64,11 +74,20 @@ BioaccousticCPP/
 ├── results/               # General project output
 ├── src/                   # Source code
 │   ├── models/            # Deep Learning Models
+│   │   ├── dae.py         # Denoising Autoencoder
+│   │   ├── unet.py        # U-Net Source Separation
+│   │   └── losses.py      # Loss Functions (L1, STFT, SC)
 │   ├── spatial/           # Spatial Audio (Beamforming/Physics)
+│   │   ├── beamforming.py # Delay-and-Sum
+│   │   ├── physics.py     # Core Physics (Steering Vectors)
+│   │   ├── reverb.py      # RIR Generation
+│   │   └── estimators.py  # GCC-PHAT / DoA Estimators
 │   ├── metrics/           # Evaluation Metrics
 │   ├── data_mixer.py      # Data Augmentation/Mixing
+│   ├── data_loader.py     # PyTorch Dataset
 │   ├── noise_models.py    # Noise Generators (White, Pink, Rain)
 │   ├── utils.py           # Logging & Plotting
+│   ├── train.py           # Training Loop
 │   └── main.py            # Main entry point
 ├── tests/                 # Unit tests
 ├── unit test results/     # Test execution reports
@@ -79,20 +98,21 @@ BioaccousticCPP/
 
 ## Components
 
-### 1. Data Pipeline (`src/data_mixer.py`)
+### 1. Data Pipeline (`src/data_mixer.py`, `src/data_loader.py`)
 -   **Input:** Isolated vocalizations (WAV).
--   **Process:** Synthetic mixing at various SNRs + Spatialization (Virtual Array).
+-   **Process:** Synthetic mixing at various SNRs + Spatialization (Virtual Array) + Reverb + Noise.
 -   **Noise Models:** White, Pink/Brown (Wind), Rain (Impulsive).
--   **Output:** Multichannel WAV files.
+-   **Output:** Multichannel WAV files (Tensor batches).
 
 ### 2. Core Models
--   **[[Model_UNet|BioCPPNet U-Net]] (`src/models/unet.py`):** The main source separation model.
+-   **[[Model_UNet|BioCPPNet U-Net]] (`src/models/unet.py`):** The main source separation model using composite loss (`src/models/losses.py`).
 -   **[[Model_DAE|Denoising Autoencoder]] (`src/models/dae.py`):** Optional pre-processing stage for noise reduction.
 
-### 3. Spatial Processing (`src/spatial/beamforming.py`)
--   **Algorithm:** [[Algorithm_GCC_PHAT|GCC-PHAT]] for TDOA/DoA estimation.
+### 3. Spatial Processing (`src/spatial/`)
+-   **Algorithm:** [[Algorithm_GCC_PHAT|GCC-PHAT]] (`src/spatial/estimators.py`) for TDOA/DoA estimation.
 -   **Beamforming:** Delay-and-Sum.
 -   **Physics:** Sub-sample delay simulation via FFT phase shifting.
+-   **Reverberation:** Stochastic RIR generation.
 -   **Hardware:** 16-channel array (simulated or miniDSP UMA-16).
 
 ### 4. Validation (`src/metrics/sisdr.py`)

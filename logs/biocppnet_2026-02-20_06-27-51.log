@@ -1,0 +1,26 @@
+2026-02-20 06:27:57 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_20Hz_cw.png
+2026-02-20 06:27:57 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_1000Hz_cw.png
+2026-02-20 06:27:59 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_15000Hz_cw.png
+2026-02-20 06:28:01 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_50000Hz_cw.png
+2026-02-20 06:28:02 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_20Hz_pulsed.png
+2026-02-20 06:28:02 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_1000Hz_pulsed.png
+2026-02-20 06:28:03 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_15000Hz_pulsed.png
+2026-02-20 06:28:04 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\beamforming_50000Hz_pulsed.png
+2026-02-20 06:28:07 - test_linting - INFO - Starting Codebase Linting Check...
+2026-02-20 06:28:07 - test_linting - INFO - Linter Output:
+Linting src...
+All checks passed!
+
+2026-02-20 06:28:07 - test_linting - INFO - Linting Passed.
+2026-02-20 06:28:07 - test_noise - INFO - White Noise PSD Slope: -0.0009 (Expected ~0.0)
+2026-02-20 06:28:08 - test_noise - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\noise_psd_white.png
+2026-02-20 06:28:08 - test_noise - INFO - Pink Noise PSD Slope: -1.0011 (Expected ~ -1.0)
+2026-02-20 06:28:09 - test_noise - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\noise_psd_pink.png
+2026-02-20 06:28:09 - test_noise - INFO - Brown Noise PSD Slope: -2.0066 (Expected ~ -2.0)
+2026-02-20 06:28:09 - test_noise - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\noise_psd_brown.png
+2026-02-20 06:28:09 - test_noise_robustness - INFO - Noise: white, SNR In: 0.04dB, SNR Out: 6.06dB, Gain: 6.02dB
+2026-02-20 06:28:10 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\robustness_noise_white.png
+2026-02-20 06:28:10 - test_noise_robustness - INFO - Noise: pink, SNR In: -0.00dB, SNR Out: 5.78dB, Gain: 5.78dB
+2026-02-20 06:28:11 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\robustness_noise_pink.png
+2026-02-20 06:28:11 - test_noise_robustness - INFO - Noise: rain, SNR In: 0.31dB, SNR Out: 5.98dB, Gain: 5.67dB
+2026-02-20 06:28:11 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-20_06-27-51\robustness_noise_rain.png

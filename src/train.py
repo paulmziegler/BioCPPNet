@@ -1,16 +1,15 @@
 import os
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-import yaml
-from pathlib import Path
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import numpy as np
 
 from src.data_loader import BioAcousticDataset
 from src.models.dae import SpectrogramDAE
-from src.utils import CONFIG, setup_logger, get_plot_path
+from src.utils import CONFIG, get_plot_path, setup_logger
 
 logger = setup_logger("training")
 
@@ -19,10 +18,12 @@ def train():
     audio_cfg = CONFIG.get("audio", {})
     model_cfg = CONFIG.get("model", {})
     train_cfg = CONFIG.get("training", {})
-    
-    device = torch.device(train_cfg.get("device", "cpu") if torch.cuda.is_available() else "cpu")
+
+    device = torch.device(
+        train_cfg.get("device", "cpu") if torch.cuda.is_available() else "cpu"
+    )
     logger.info(f"Using device: {device}")
-    
+
     # 2. Setup Dataset & Loader
     dataset = BioAcousticDataset(
         clean_files=[], # Empty list -> uses synthetic generation
@@ -39,11 +40,12 @@ def train():
     
     # 3. Setup Model
     model = SpectrogramDAE(
-        n_fft=audio_cfg.get("n_fft", 1024),
-        hop_length=audio_cfg.get("hop_length", 512)
+        n_fft=audio_cfg.get("n_fft", 1024), hop_length=audio_cfg.get("hop_length", 512)
     ).to(device)
-    
-    optimizer = torch.optim.Adam(model.parameters(), lr=model_cfg.get("learning_rate", 0.001))
+
+    optimizer = torch.optim.Adam(
+        model.parameters(), lr=model_cfg.get("learning_rate", 0.001)
+    )
     loss_fn = nn.MSELoss()
     
     # 4. Training Loop

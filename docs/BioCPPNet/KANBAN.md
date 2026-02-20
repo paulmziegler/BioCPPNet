@@ -11,7 +11,6 @@ kanban
   Backlog
     [Identify and download public mono datasets]
     [Develop interactive demo (Gradio)]
-    [Investigate super-resolution techniques for TDOA]
     [Implement Atmospheric Absorption]
     [Implement Source Movement Trajectories]
   Signal Pipeline
@@ -61,16 +60,15 @@ kanban
 - [x] **Create PyTorch `OnlineDataset` for on-the-fly augmentation**
 - [x] **Implement Denoising Autoencoder (DAE) for initial noise reduction**
 - [x] **Setup training loop with YAML config**
-- [ ] Reimplement BioCPPNet U-Net architecture
-- [ ] Implement L1 Waveform Loss
-- [ ] Implement STFT L1 Loss
-- [ ] Implement Spectral Convergence Loss
+- [x] **Reimplement BioCPPNet U-Net architecture**
+- [x] **Implement Loss Functions (L1, STFT, SC)**
+- [ ] Integrate End-to-End Pipeline (Beamformer + DAE + U-Net)
 
 
 ## Array Processing
 
 - [x] Implement Delay-and-Sum Beamforming
-- [ ] Implement Sub-sample Delay Estimation (GCC-PHAT + Interpolation)
+- [x] **Implement Sub-sample Delay Estimation (GCC-PHAT + Interpolation)**
 - [ ] Implement MUSIC algorithm for DoA estimation
 - [ ] Integrate beamformed signal as input to BioCPPNet
 

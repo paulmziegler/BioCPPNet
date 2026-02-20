@@ -1,13 +1,13 @@
+from typing import Iterator, List, Tuple
+
+import numpy as np
+import scipy.signal
+import soundfile as sf
 import torch
 from torch.utils.data import IterableDataset
-import numpy as np
-import glob
-import os
-import soundfile as sf
-import scipy.signal
-from typing import List, Optional, Tuple, Iterator
 
 from src.data_mixer import DataMixer
+
 
 class BioAcousticDataset(IterableDataset):
     """
@@ -41,20 +41,23 @@ class BioAcousticDataset(IterableDataset):
         # Initialize DataMixer
         self.mixer = DataMixer(sample_rate=sample_rate)
         
-        # Update mixer geometry if needed (assuming linear array for now or loaded from config)
+                # Update mixer geometry if needed
+        # (assuming linear array for now or loaded from config)
         # Ideally, DataMixer loads config automatically.
-        
+
     def _generate_synthetic_source(self) -> np.ndarray:
         """Generates a random chirp or pulse if no files are provided."""
         t = np.linspace(0, self.duration, self.n_samples, endpoint=False)
-        
+
         # Random parameters
         freq_start = np.random.uniform(20000, 40000)
         freq_end = np.random.uniform(40000, 80000)
-        
+
         # Linear Chirp
-        signal = scipy.signal.chirp(t, f0=freq_start, f1=freq_end, t1=self.duration, method='linear')
-        
+        signal = scipy.signal.chirp(
+            t, f0=freq_start, f1=freq_end, t1=self.duration, method="linear"
+        )
+
         # Apply envelope
         envelope = np.hanning(self.n_samples)
         return signal * envelope
@@ -96,12 +99,14 @@ class BioAcousticDataset(IterableDataset):
         """
         Infinite iterator for DataLoader.
         """
-        import scipy.signal # Import locally if needed or move top level
         
         while True:
             # 1. Get Source (Target)
-            clean_mono = self._load_source() if self.clean_files else self._generate_synthetic_source()
-            
+            if self.clean_files:
+                clean_mono = self._load_source()
+            else:
+                clean_mono = self._generate_synthetic_source()
+
             # 2. Pick Random Location
             azimuth = np.random.uniform(0, 180) # Frontal semi-circle
             
@@ -126,10 +131,13 @@ class BioAcousticDataset(IterableDataset):
             
             # Crop reverb tail to maintain fixed length for batching
             if reverberant_source.shape[1] > self.n_samples:
-                reverberant_source = reverberant_source[:, :self.n_samples]
+                reverberant_source = reverberant_source[:, : self.n_samples]
             elif reverberant_source.shape[1] < self.n_samples:
-                reverberant_source = np.pad(reverberant_source, ((0,0), (0, self.n_samples - reverberant_source.shape[1])))
-            
+                reverberant_source = np.pad(
+                    reverberant_source,
+                    ((0, 0), (0, self.n_samples - reverberant_source.shape[1])),
+                )
+
             # Add Environmental Noise (Wind/Thermal)
             # Random SNR between 0 and 20 dB
             snr = np.random.uniform(0, 20)
@@ -141,17 +149,21 @@ class BioAcousticDataset(IterableDataset):
             # Shape: (Channels, Time)
             input_tensor = torch.from_numpy(noisy_mixture).float()
             
-            # Target: Usually we want to predict the clean direct path at the reference mic (Ch0)
-            # Shape: (1, Time) or (Channels, Time) depending on task (mask estimation vs beamforming)
+            # Target: Usually we want to predict the clean direct path
+            # at the reference mic (Ch0)
+            # Shape: (1, Time) or (Channels, Time) depending on task
+            # (mask estimation vs beamforming)
             # Let's return the full clean spatialised signal (Direct path only)
-            
-            # Ensure target is also n_samples (DataMixer delays might shift it?) 
+
+            # Ensure target is also n_samples (DataMixer delays might shift it?)
             # spatialise_signal (no reverb) keeps length roughly same but let's be safe
             if clean_multichannel.shape[1] > self.n_samples:
-                clean_multichannel = clean_multichannel[:, :self.n_samples]
+                clean_multichannel = clean_multichannel[:, : self.n_samples]
             elif clean_multichannel.shape[1] < self.n_samples:
-                clean_multichannel = np.pad(clean_multichannel, ((0,0), (0, self.n_samples - clean_multichannel.shape[1])))
-                
+                clean_multichannel = np.pad(
+                    clean_multichannel,
+                    ((0, 0), (0, self.n_samples - clean_multichannel.shape[1])),
+                )
+
             target_tensor = torch.from_numpy(clean_multichannel).float()
-            
             yield input_tensor, target_tensor

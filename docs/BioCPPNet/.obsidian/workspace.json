@@ -185,9 +185,10 @@
   },
   "active": "7af779bf5df8bf47",
   "lastOpenFiles": [
+    "Algorithm_GCC_PHAT.md",
+    "architecture.md",
     "DAE_Methodology_Comparison.md",
     "Data_Augmentation_Strategy.md",
-    "architecture.md",
     "Signal_Specification.md",
     "Model_UNet.md",
     "Model_DAE.md",

@@ -1,7 +1,13 @@
 import torch
 import pytest
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from src.models.unet import BioCPPNet
 from src.models.losses import BioAcousticLoss
+from src.utils import get_plot_path, setup_logger
+
+logger = setup_logger("test_unet")
 
 def test_unet_shapes():
     """Verify U-Net input/output shapes match."""
@@ -42,8 +48,10 @@ def test_unet_learning():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     loss_fn = torch.nn.MSELoss() # Simple MSE on spectrogram for this test
     
-    # Spectrogram target
-    target = torch.randn(1, 1, 64, 64)
+    # Spectrogram target: Vertical bar (pulse)
+    target = torch.zeros(1, 1, 64, 64)
+    target[:, :, :, 30:35] = 1.0 
+    
     input_sig = torch.randn(1, 1, 64, 64)
     
     model.train()
@@ -59,3 +67,25 @@ def test_unet_learning():
     final_loss = loss_fn(model(input_sig), target).item()
     
     assert final_loss < initial_loss
+
+    # Visualization
+    model.eval()
+    with torch.no_grad():
+        final_out = model(input_sig)
+        
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    
+    axes[0].imshow(input_sig[0, 0].numpy(), origin='lower', aspect='auto')
+    axes[0].set_title("Input (Noise)")
+    
+    axes[1].imshow(target[0, 0].numpy(), origin='lower', aspect='auto')
+    axes[1].set_title("Target (Pulse)")
+    
+    axes[2].imshow(final_out[0, 0].numpy(), origin='lower', aspect='auto')
+    axes[2].set_title("Separated Output")
+    
+    plt.tight_layout()
+    save_path = get_plot_path("unet_learning_viz")
+    plt.savefig(save_path)
+    plt.close()
+    logger.info(f"Saved U-Net plot to {save_path}")

@@ -1,7 +1,13 @@
 import torch
 import numpy as np
 import pytest
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from src.models.dae import SpectrogramDAE
+from src.utils import get_plot_path, setup_logger
+
+logger = setup_logger("test_dae")
 
 def test_dae_shapes():
     """Verify input/output shapes match."""
@@ -52,11 +58,33 @@ def test_dae_learning_capability():
             initial_loss = loss.item()
         final_loss = loss.item()
         
-    print(f"Initial Loss: {initial_loss}, Final Loss: {final_loss}")
+    logger.info(f"Initial Loss: {initial_loss}, Final Loss: {final_loss}")
     
     # Loss should decrease significantly
     assert final_loss < initial_loss * 0.5, "Model failed to learn simple reconstruction"
     assert final_loss < 0.05, f"Final loss {final_loss} is too high for simple overfit"
+
+    # Visualization
+    model.eval()
+    with torch.no_grad():
+        final_out = model(input_sig)
+        
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    
+    axes[0].imshow(input_sig[0, 0].numpy(), origin='lower', aspect='auto')
+    axes[0].set_title("Noisy Input")
+    
+    axes[1].imshow(target[0, 0].numpy(), origin='lower', aspect='auto')
+    axes[1].set_title("Clean Target")
+    
+    axes[2].imshow(final_out[0, 0].numpy(), origin='lower', aspect='auto')
+    axes[2].set_title("Denoised Output")
+    
+    plt.tight_layout()
+    save_path = get_plot_path("dae_learning_viz")
+    plt.savefig(save_path)
+    plt.close()
+    logger.info(f"Saved DAE plot to {save_path}")
 
 def test_stft_helper_shapes():
     """Verify wav_to_spectrogram and inverse."""

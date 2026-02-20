@@ -1,0 +1,34 @@
+2026-02-20 06:41:33 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_20Hz_cw.png
+2026-02-20 06:41:34 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_1000Hz_cw.png
+2026-02-20 06:41:35 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_15000Hz_cw.png
+2026-02-20 06:41:39 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_50000Hz_cw.png
+2026-02-20 06:41:39 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_20Hz_pulsed.png
+2026-02-20 06:41:40 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_1000Hz_pulsed.png
+2026-02-20 06:41:40 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_15000Hz_pulsed.png
+2026-02-20 06:41:42 - test_beamforming - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\beamforming_50000Hz_pulsed.png
+2026-02-20 06:41:44 - test_dae - INFO - Initial Loss: 0.5570297837257385, Final Loss: 0.017728427425026894
+2026-02-20 06:41:45 - test_dae - INFO - Saved DAE plot to unit test results\session_2026-02-20_06-41-30\dae_learning_viz.png
+2026-02-20 06:41:45 - test_gcc_phat - INFO - True Samples: [0.  5.5]
+2026-02-20 06:41:45 - test_gcc_phat - INFO - Est  Samples: [1.95563490e-19 5.49998904e+00]
+2026-02-20 06:41:45 - test_gcc_phat - INFO - Max Error: 1.0956076741841514e-05
+2026-02-20 06:41:45 - test_gcc_phat - INFO - Saved GCC-PHAT plot to unit test results\session_2026-02-20_06-41-30\gcc_phat_cc.png
+2026-02-20 06:41:45 - test_linting - INFO - Starting Codebase Linting Check...
+2026-02-20 06:41:45 - test_linting - INFO - Linter Output:
+Linting src...
+All checks passed!
+
+2026-02-20 06:41:45 - test_linting - INFO - Linting Passed.
+2026-02-20 06:41:46 - test_losses_viz - INFO - Saved Loss plot to unit test results\session_2026-02-20_06-41-30\loss_visualization.png
+2026-02-20 06:41:46 - test_noise - INFO - White Noise PSD Slope: 0.0010 (Expected ~0.0)
+2026-02-20 06:41:47 - test_noise - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\noise_psd_white.png
+2026-02-20 06:41:47 - test_noise - INFO - Pink Noise PSD Slope: -0.9992 (Expected ~ -1.0)
+2026-02-20 06:41:47 - test_noise - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\noise_psd_pink.png
+2026-02-20 06:41:48 - test_noise - INFO - Brown Noise PSD Slope: -2.0106 (Expected ~ -2.0)
+2026-02-20 06:41:48 - test_noise - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\noise_psd_brown.png
+2026-02-20 06:41:48 - test_noise_robustness - INFO - Noise: white, SNR In: 0.01dB, SNR Out: 6.04dB, Gain: 6.03dB
+2026-02-20 06:41:49 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\robustness_noise_white.png
+2026-02-20 06:41:49 - test_noise_robustness - INFO - Noise: pink, SNR In: 0.00dB, SNR Out: 5.60dB, Gain: 5.60dB
+2026-02-20 06:41:50 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\robustness_noise_pink.png
+2026-02-20 06:41:50 - test_noise_robustness - INFO - Noise: rain, SNR In: -0.31dB, SNR Out: 6.03dB, Gain: 6.33dB
+2026-02-20 06:41:50 - test_noise_robustness - INFO - Saved plot to unit test results\session_2026-02-20_06-41-30\robustness_noise_rain.png
+2026-02-20 06:41:55 - test_unet - INFO - Saved U-Net plot to unit test results\session_2026-02-20_06-41-30\unet_learning_viz.png

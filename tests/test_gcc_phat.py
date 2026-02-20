@@ -1,13 +1,18 @@
 import numpy as np
 import pytest
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 from src.spatial.estimators import GCCPHAT
 from src.spatial.physics import apply_subsample_shifts
+from src.utils import get_plot_path, setup_logger
+
+logger = setup_logger("test_gcc_phat")
 
 def test_gcc_phat_delay_estimation():
     """Verify GCC-PHAT recovers known fractional delays."""
     fs = 100000
     n_samples = 2048
-    n_channels = 2
     
     # 1. Generate Noise Signal (Broadband is best for GCC)
     # White noise
@@ -17,14 +22,6 @@ def test_gcc_phat_delay_estimation():
     # Ref channel 0: delay 0
     # Channel 1: delay 5.5 samples (55 microseconds)
     true_delays = np.array([0.0, 5.5 / fs])
-    
-    # Use physics to apply precise fractional delay
-    # Note: apply_subsample_shifts expects (N_samples,) or (N_ch, N_samp) if we map properly
-    # We want to broadcast mono to multi with delays.
-    # physics.apply_subsample_shifts handles this?
-    # No, my implementation:
-    # "If signal is 1D: sig_fft is (N_freqs,). Broadcasts to (N_channels, N_freqs)."
-    # Yes, it works.
     
     multichannel = apply_subsample_shifts(signal_mono, true_delays, fs)
     
@@ -41,9 +38,9 @@ def test_gcc_phat_delay_estimation():
     true_samples = true_delays * fs
     
     error = np.abs(est_samples - true_samples)
-    print(f"True Samples: {true_samples}")
-    print(f"Est  Samples: {est_samples}")
-    print(f"Max Error: {np.max(error)}")
+    logger.info(f"True Samples: {true_samples}")
+    logger.info(f"Est  Samples: {est_samples}")
+    logger.info(f"Max Error: {np.max(error)}")
     
     assert np.allclose(est_samples, true_samples, atol=0.1)
 
@@ -67,3 +64,37 @@ def test_gcc_phat_noise_robustness():
     
     # Tolerance relaxed for high noise
     assert np.allclose(est_samples, true_samples, atol=0.5)
+
+def test_gcc_phat_visualization():
+    """Generate plots of GCC-PHAT Cross-Correlation."""
+    fs = 100000
+    signal_mono = np.random.randn(2048)
+    # Channel 1 delayed by 10 samples relative to Ch 0
+    true_delays = np.array([0.0, 10.0 / fs])
+    
+    multichannel = apply_subsample_shifts(signal_mono, true_delays, fs)
+    
+    estimator = GCCPHAT(fs, np.zeros((2,3)))
+    est_delays, diag = estimator.estimate(multichannel, return_diagnostics=True)
+    
+    cc = diag['cc'] # (N_channels, N_samples)
+    
+    # Plot CC for Channel 1 (relative to Ref Ch 0)
+    plt.figure(figsize=(10, 6))
+    lags = np.arange(cc.shape[1]) - cc.shape[1] // 2
+    
+    plt.plot(lags, cc[1], label='GCC-PHAT (Ch 1 vs Ref)')
+    plt.axvline(x=10.0, color='r', linestyle='--', label='True Delay (+10)')
+    plt.axvline(x=est_delays[1]*fs, color='g', linestyle=':', label='Est Delay')
+    
+    plt.title("GCC-PHAT Cross Correlation")
+    plt.xlabel("Lag (samples)")
+    plt.ylabel("Amplitude")
+    plt.legend()
+    plt.grid(True)
+    plt.xlim(-50, 50) # Zoom in near zero
+    
+    save_path = get_plot_path("gcc_phat_cc")
+    plt.savefig(save_path)
+    plt.close()
+    logger.info(f"Saved GCC-PHAT plot to {save_path}")

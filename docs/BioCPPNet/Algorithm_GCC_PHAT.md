@@ -16,7 +16,8 @@ In reverberant environments, strong reflections create multiple peaks in the cro
 $$ G_{PHAT}(\omega) = \frac{1}{|X_1(\omega) \cdot X_2^*(\omega)|} $$
 
 The Generalized Cross-Correlation is then:
-$$ R_{GCC-PHAT}(	au) = 	ext{IFFT}\left( \frac{X_1(\omega) \cdot X_2^*(\omega)}{|X_1(\omega) \cdot X_2^*(\omega)|} ight) $$
+$$ R_{GCC-PHAT}(	au) = 	ext{IFFT}\left( \frac{X_1(\omega) \cdot X_2^*(\omega)}{|X_1(\omega) \cdot X_2^*(\omega)|} 
+ight) $$
 
 Note that the term inside the IFFT is purely the **phase difference** between the signals ($e^{j(\phi_1 - \phi_2)}$), discarding magnitude information.
 

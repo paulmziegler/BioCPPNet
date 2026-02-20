@@ -38,38 +38,31 @@ class SpectrogramDAE(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        # Decoder
+        # Decoder (Upsample + Conv)
         self.dec4 = nn.Sequential(
-            nn.ConvTranspose2d(
-                128, 64, kernel_size=3, stride=2, padding=1, output_padding=1
-            ),
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+            nn.Conv2d(128, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
         )
         self.dec3 = nn.Sequential(
-            nn.ConvTranspose2d(
-                64, 32, kernel_size=3, stride=2, padding=1, output_padding=1
-            ),
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+            nn.Conv2d(64, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
         )
         self.dec2 = nn.Sequential(
-            nn.ConvTranspose2d(
-                32, 16, kernel_size=3, stride=2, padding=1, output_padding=1
-            ),
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+            nn.Conv2d(32, 16, kernel_size=3, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU(inplace=True),
         )
 
         # Output Head
-        self.dec1 = nn.ConvTranspose2d(
-            16, 1, kernel_size=3, stride=2, padding=1, output_padding=1
+        self.dec1 = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+            nn.Conv2d(16, 1, kernel_size=3, padding=1)
         )
-        # No activation if target is log-magnitude (can be negative? No, log(1+x) >= 0).
-        # Actually standard log-spec is usually normalized.
-        
-        
-        # Let's use ReLU to ensure non-negativity if we assume input is > 0.
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Check input size to handle padding for odd dimensions

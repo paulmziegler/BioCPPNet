@@ -17,6 +17,19 @@ class BaseUNet(nn.Module):
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True)
         )
+        
+    def build_up_block(self, in_ch, out_ch):
+        """
+        Factory method for upsampling blocks.
+        Uses Bilinear Upsampling + Conv to avoid checkerboard artifacts 
+        (better than ConvTranspose2d).
+        """
+        return nn.Sequential(
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+            nn.Conv2d(in_ch, out_ch, 3, padding=1),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True)
+        )
 
 class BioCPPNet(BaseUNet):
     """
@@ -37,19 +50,15 @@ class BioCPPNet(BaseUNet):
         self.bottleneck = self.build_conv_block(hidden_dim * 4, hidden_dim * 8)
 
         # Decoder (Expanding Path)
-        self.up3 = nn.ConvTranspose2d(
-            hidden_dim * 8, hidden_dim * 4, kernel_size=2, stride=2
-        )
+        # Input to up-block is previous layer output (dim*8). 
+        # Output should match skip connection (dim*4).
+        self.up3 = self.build_up_block(hidden_dim * 8, hidden_dim * 4)
         self.dec3 = self.build_conv_block(hidden_dim * 8, hidden_dim * 4)
 
-        self.up2 = nn.ConvTranspose2d(
-            hidden_dim * 4, hidden_dim * 2, kernel_size=2, stride=2
-        )
+        self.up2 = self.build_up_block(hidden_dim * 4, hidden_dim * 2)
         self.dec2 = self.build_conv_block(hidden_dim * 4, hidden_dim * 2)
 
-        self.up1 = nn.ConvTranspose2d(
-            hidden_dim * 2, hidden_dim, kernel_size=2, stride=2
-        )
+        self.up1 = self.build_up_block(hidden_dim * 2, hidden_dim)
         self.dec1 = self.build_conv_block(hidden_dim * 2, hidden_dim)
 
         self.final = nn.Conv2d(hidden_dim, out_channels, kernel_size=1)

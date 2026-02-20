@@ -16,9 +16,9 @@ flowchart TD
     Enc1 --> Enc2["Encoder Block 2<br>(Conv2d 64 + ReLU)"]
     Enc2 --> Enc3["Encoder Block 3<br>(Conv2d 128 + ReLU)"]
     Enc3 --> Bottleneck["Latent Space<br>(Dense 256/512)"]
-    Bottleneck --> Dec3["Decoder Block 3<br>(UpSample 128 + ReLU)"]
-    Dec3 --> Dec2["Decoder Block 2<br>(UpSample 64 + ReLU)"]
-    Dec2 --> Dec1["Decoder Block 1<br>(UpSample 32 + ReLU)"]
+    Bottleneck --> Dec3["Decoder Block 3<br>(UpSample + Conv 128 + ReLU)"]
+    Dec3 --> Dec2["Decoder Block 2<br>(UpSample + Conv 64 + ReLU)"]
+    Dec2 --> Dec1["Decoder Block 1<br>(UpSample + Conv 32 + ReLU)"]
     Dec1 --> Output["Clean Spectrogram<br>(Sigmoid/ReLU)"]
 ```
 
@@ -45,20 +45,21 @@ The most compressed representation of the signal.
 
 ### 3. Decoder (Reconstruction)
 The decoder reconstructs the clean spectrogram from the bottleneck features.
+**Note:** Uses `Bilinear Upsample` + `Conv2d` instead of `ConvTranspose2d` to avoid checkerboard artifacts.
 
 *   **Layer 3 (Upsample):**
-    *   ConvTranspose2d (128 filters, 3x3 kernel, stride=2, padding=1)
+    *   Upsample (Scale 2) + Conv2d (128 filters)
     *   Activation: ReLU
 *   **Layer 2 (Upsample):**
-    *   ConvTranspose2d (64 filters, 3x3 kernel, stride=2, padding=1)
+    *   Upsample (Scale 2) + Conv2d (64 filters)
     *   Activation: ReLU
 *   **Layer 1 (Upsample):**
-    *   ConvTranspose2d (32 filters, 3x3 kernel, stride=2, padding=1)
+    *   Upsample (Scale 2) + Conv2d (32 filters)
     *   Activation: ReLU
 
 ### 4. Output Layer
 Reconstructs the original spectrogram dimensions.
-*   **Layer:** ConvTranspose2d (1 filter, 3x3 kernel, stride=1, padding=1)
+*   **Layer:** Upsample (Scale 2) + Conv2d (1 filter)
 *   **Activation:** Sigmoid (if normalized 0-1) or ReLU (if magnitude).
 
 ## Training Strategy

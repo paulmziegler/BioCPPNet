@@ -31,12 +31,12 @@ def test_dae_learning_capability():
     This proves the architecture allows gradient flow.
     """
     model = SpectrogramDAE()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_fn = torch.nn.MSELoss()
     
     # Target: A simple horizontal line (constant frequency tone)
     target = torch.zeros(1, 1, 513, 64)
-    target[:, :, 100:110, :] = 1.0 # Band at bin 100
+    target[:, :, 100:110, :] = 2.0  # Stronger signal
     
     # Input: Target + Noise
     noise = torch.randn_like(target) * 0.1

@@ -23,10 +23,10 @@ flowchart TD
     E4 --> P4["Pool"] --> Bottleneck["Bottleneck<br>(Conv 512)"]
 
     subgraph Decoder
-    Bottleneck --> U4["UpSample"] --> D4["Decoder Block 4<br>(Conv 256)"]
-    D4 --> U3["UpSample"] --> D3["Decoder Block 3<br>(Conv 128)"]
-    D3 --> U2["UpSample"] --> D2["Decoder Block 2<br>(Conv 64)"]
-    D2 --> U1["UpSample"] --> D1["Decoder Block 1<br>(Conv 32)"]
+    Bottleneck --> U4["UpSample + Conv"] --> D4["Decoder Block 4<br>(Conv 256)"]
+    D4 --> U3["UpSample + Conv"] --> D3["Decoder Block 3<br>(Conv 128)"]
+    D3 --> U2["UpSample + Conv"] --> D2["Decoder Block 2<br>(Conv 64)"]
+    D2 --> U1["UpSample + Conv"] --> D1["Decoder Block 1<br>(Conv 32)"]
     end
 
     E4 -.->|Skip Connection| D4
@@ -69,17 +69,24 @@ The deepest layer capturing the most abstract features.
 
 ### 4. Decoder (Expanding Path)
 The decoder reconstructs the signal resolution. Skip connections concatenate features from the Encoder to preserve spatial details (time/frequency alignment).
+**Note:** Uses `Bilinear Upsample` + `Conv2d` instead of `ConvTranspose2d` to avoid checkerboard artifacts.
 
 *   **Up-Block 4:**
-    *   ConvTranspose2d (Upsample)
+    *   Upsample (Scale 2) + Conv2d
     *   Concatenate with Encoder Block 4 Output
     *   Double Conv2d
 *   **Up-Block 3:**
-    *   ConvTranspose2d + Concat + Double Conv2d
+    *   Upsample (Scale 2) + Conv2d
+    *   Concatenate with Encoder Block 3 Output
+    *   Double Conv2d
 *   **Up-Block 2:**
-    *   ConvTranspose2d + Concat + Double Conv2d
+    *   Upsample (Scale 2) + Conv2d
+    *   Concatenate with Encoder Block 2 Output
+    *   Double Conv2d
 *   **Up-Block 1:**
-    *   ConvTranspose2d + Concat + Double Conv2d
+    *   Upsample (Scale 2) + Conv2d
+    *   Concatenate with Encoder Block 1 Output
+    *   Double Conv2d
 
 ### 5. Output Head
 *   **Layer:** Conv2d (1x1 kernel)

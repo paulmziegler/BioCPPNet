@@ -12,8 +12,8 @@ kanban
     [Identify mono datasets]
     [Gradio Demo]
     [Atmos Absorption]
-    [SI-SDR Benchmarking]
   Completed
+    [SI-SDR Benchmarking]
     [250kHz Support]
     [Noise Models]
     [Multi-Source Mixing]
@@ -72,7 +72,7 @@ kanban
 
 ## Results
 
-- [ ] SI-SDR Benchmarking
+- [x] SI-SDR Benchmarking
 - [ ] Downstream classification accuracy evaluation
 - [ ] Documentation and Obsidian export
 

@@ -1,28 +1,51 @@
 import numpy as np
 
 
-def calculate_sisdr(reference: np.ndarray, estimate: np.ndarray) -> float:
+def calculate_sisdr(ref: np.ndarray, est: np.ndarray) -> float:
     """
-    Calculates Scale-Invariant Signal-to-Distortion Ratio (SI-SDR).
+    Calculate Scale-Invariant Signal-to-Distortion Ratio (SI-SDR).
     
     Args:
-        reference: Clean target source signal.
-        estimate: Estimated source signal.
+        ref: Ground truth reference signal (1D Numpy array).
+        est: Estimated signal (1D Numpy array).
         
     Returns:
-        SI-SDR in dB.
+        SI-SDR value in decibels (dB).
     """
-    eps = np.finfo(estimate.dtype).eps
-    reference = reference.reshape(-1, 1)
-    estimate = estimate.reshape(-1, 1)
-
-    R_ss = np.dot(reference.T, reference)
-    alpha = np.dot(estimate.T, reference) / (R_ss + eps)
+    # Ensure inputs are 1D
+    ref = np.squeeze(ref)
+    est = np.squeeze(est)
     
-    e_target = alpha * reference
-    e_res = estimate - e_target
+    # Check lengths
+    if ref.shape != est.shape:
+        raise ValueError("Reference and estimated signals must have the same length.")
+        
+    # Remove DC offset
+    ref = ref - np.mean(ref)
+    est = est - np.mean(est)
     
-    S_target = np.sum(e_target ** 2)
-    S_res = np.sum(e_res ** 2)
+    # Compute power of ref
+    ref_energy = np.sum(ref**2)
+    if ref_energy == 0:
+        return np.inf if np.all(est == 0) else -np.inf
+        
+    # Projection of estimated signal onto reference signal
+    alpha = np.sum(est * ref) / ref_energy
     
-    return 10 * np.log10((S_target + eps) / (S_res + eps))
+    # Target signal
+    target = alpha * ref
+    
+    # Noise/distortion signal
+    e_noise = est - target
+    
+    # Compute energies
+    target_energy = np.sum(target**2)
+    noise_energy = np.sum(e_noise**2)
+    
+    if noise_energy == 0:
+        return np.inf
+        
+    # SI-SDR in dB
+    sisdr = 10 * np.log10(target_energy / noise_energy)
+    
+    return float(sisdr)

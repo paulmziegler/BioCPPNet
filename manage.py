@@ -96,17 +96,42 @@ def train(config):
 @cli.command()
 def evaluate():
     """Evaluate model performance using SI-SDR."""
-    click.echo("Starting evaluation...")
+    click.echo("Starting evaluation on synthetic data...")
     try:
-        from src.metrics.sisdr import calculate_sisdr
-        # Dummy evaluation
         import numpy as np
-        ref = np.random.randn(1000)
-        est = ref + 0.1 * np.random.randn(1000)
-        score = calculate_sisdr(ref, est)
-        click.echo(f"Dummy SI-SDR score: {score:.2f} dB")
+        from src.metrics.sisdr import calculate_sisdr
+        from src.pipeline import BioCPPNetPipeline
+        from src.spatial.physics import azimuth_elevation_to_vector, calculate_steering_vector, apply_subsample_shifts
+        
+        pipeline = BioCPPNetPipeline()
+        sample_rate = pipeline.sample_rate
+        duration = 1.0
+        n_samples = int(duration * sample_rate)
+        
+        # 1. Generate clean target signal (e.g., 4kHz tone)
+        t = np.arange(n_samples) / sample_rate
+        clean_signal = np.sin(2 * np.pi * 4000 * t).astype(np.float32)
+        
+        # 2. Spatialise to 45 degrees
+        source_vec = azimuth_elevation_to_vector(45.0, 0.0)
+        distances = calculate_steering_vector(pipeline.beamformer.mic_positions, source_vec)
+        delays = -distances / pipeline.beamformer.speed_of_sound
+        multichannel = apply_subsample_shifts(clean_signal, delays, sample_rate)
+        
+        # Add a bit of noise
+        multichannel += 0.1 * np.random.randn(*multichannel.shape).astype(np.float32)
+        
+        # 3. Process through pipeline
+        output_signal = pipeline.process(multichannel, azimuth_deg=45.0)
+        
+        # 4. Compute SI-SDR
+        # Need to ensure lengths match due to potential STFT padding differences
+        min_len = min(len(clean_signal), len(output_signal))
+        score = calculate_sisdr(clean_signal[:min_len], output_signal[:min_len])
+        
+        click.echo(f"Evaluation complete. SI-SDR score: {score:.2f} dB")
     except ImportError as e:
-        click.echo(f"Error importing metrics: {e}")
+        click.echo(f"Error importing dependencies for evaluation: {e}")
 
 if __name__ == "__main__":
     cli()

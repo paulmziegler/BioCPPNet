@@ -9,10 +9,10 @@ kanban-plugin: basic
 ```mermaid
 kanban
   Backlog
-    [Identify mono datasets]
     [Gradio Demo]
     [Atmos Absorption]
   Completed
+    [Identify mono datasets]
     [SI-SDR Benchmarking]
     [250kHz Support]
     [Noise Models]
@@ -32,7 +32,7 @@ kanban
 
 ## Backlog
 
-- [ ] Identify and download public mono datasets (e.g., Earth Species Project) for spatialization
+- [x] Identify and download public mono datasets (e.g., Earth Species Project) for spatialization
 - [ ] Develop interactive demo (Gradio) for multichannel file upload
 - [ ] Investigate super-resolution techniques for TDOA estimation
 - [ ] Implement Atmospheric Absorption (Frequency-dependent attenuation)

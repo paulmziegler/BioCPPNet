@@ -8,3 +8,5 @@ numpy
 soundfile
 matplotlib
 tqdm
+datasets
+huggingface_hub

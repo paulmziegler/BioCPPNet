@@ -54,15 +54,60 @@ def run():
     subprocess.run(cmd, check=False)
 
 @cli.command()
-def download_data():
-    """Download isolated vocalizations."""
+@click.option('--split', default='test', help='Dataset split to download (e.g. train, test).')
+@click.option('--limit', default=10, help='Maximum number of files to download.')
+def download_data(split, limit):
+    """Download isolated vocalizations from the Earth Species Project."""
     data_dir = DIRS.get("data", "data")
     raw_dir = os.path.join(data_dir, "raw")
     Path(raw_dir).mkdir(parents=True, exist_ok=True)
     
     click.echo(f"Downloading data to {raw_dir}...")
-    click.echo("TODO: Implement integration with Earth Species Project Library.")
-    # Example: subprocess.run(["wget", ...])
+    try:
+        from datasets import load_dataset
+        import soundfile as sf
+        import numpy as np
+        
+        click.echo(f"Downloading Earth Species Project BEANS dataset ({split}, limit={limit})...")
+        # Load the BEANS dataset in streaming mode to avoid downloading 50GB
+        dataset = load_dataset("EarthSpeciesProject/BEANS-Zero", split=split, streaming=True)
+        
+        count = 0
+        for i, item in enumerate(dataset):
+            if count >= limit:
+                break
+            
+            # The structure might be different, let's extract the array safely
+            if "audio" in item and isinstance(item["audio"], dict) and "array" in item["audio"]:
+                audio_data = item["audio"].get("array")
+                sr = item["audio"].get("sampling_rate", 16000)
+            elif "audio" in item and hasattr(item["audio"], "get"):
+                # fallback dict
+                audio_data = item["audio"].get("array")
+                sr = item["audio"].get("sampling_rate", 16000)
+            elif "audio" in item and isinstance(item["audio"], list):
+                # audio is just a raw list of floats
+                audio_data = np.array(item["audio"])
+                sr = 16000 # default
+            else:
+                click.echo(f"Skipping item: audio field type is {type(item.get('audio'))}")
+                continue
+                
+            # Try to get a meaningful label
+            label = str(item.get("dataset_name", item.get("task", "unknown"))).replace("/", "_").replace(" ", "_")
+            
+            filename = f"beans_{label}_{i}.wav"
+            filepath = os.path.join(raw_dir, filename)
+            
+            # Ensure float32 for pipeline compatibility
+            sf.write(filepath, audio_data.astype(np.float32), sr)
+            count += 1
+            
+        click.echo(f"Successfully downloaded and saved {count} mono audio files to {raw_dir}.")
+    except ImportError:
+        click.echo("Error: 'datasets' or 'soundfile' library not found. Please run 'pip install datasets huggingface_hub soundfile'.")
+    except Exception as e:
+        click.echo(f"Error downloading data: {e}")
 
 @cli.command()
 def mix_data():

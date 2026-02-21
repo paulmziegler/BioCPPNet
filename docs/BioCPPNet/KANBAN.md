@@ -69,7 +69,7 @@ kanban
 
 - [x] Implement Delay-and-Sum Beamforming
 - [x] **Implement Sub-sample Delay Estimation (GCC-PHAT + Interpolation)**
-- [ ] Implement MUSIC algorithm for DoA estimation
+- [x] Implement MUSIC algorithm for DoA estimation
 - [x] Integrate beamformed signal as input to BioCPPNet
 
 
@@ -84,7 +84,7 @@ kanban
 
 ## Archive
 
-- [ ] Initial Project Setup
+- [x] Initial Project Setup
 - [x] Add unit tests for STFT inversions and beamforming delays
 
 %% kanban:settings

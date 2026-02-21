@@ -13,6 +13,7 @@
 -   [[Model_UNet|BioCPPNet U-Net]]: The main source separation model.
 -   [[Model_DAE|Denoising Autoencoder]]: The noise reduction pre-processor.
 -   [[Algorithm_GCC_PHAT|GCC-PHAT]]: The blind beamforming and TDOA algorithm.
+-   [[Algorithm_MUSIC|MUSIC Algorithm]]: High-resolution direction of arrival estimation.
 
 ## 🚀 Getting Started
 

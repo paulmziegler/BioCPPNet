@@ -7,38 +7,27 @@ kanban-plugin: basic
 ## Visual Board
 
 ```mermaid
-graph TD
-  subgraph Backlog
-    B1[Identify mono datasets]
-    B2[Gradio Demo]
-    B3[Atmos Absorption]
-    B4[Trajectories]
-  end
-  subgraph Signal_Pipeline
-    S1[250kHz Support]
-    S2[Noise Models]
-    S3[Multi-Source]
-    S4[Reverb]
-    S5[Sensor Perturb]
-    S6[Source Movement]
-  end
-  subgraph Modeling
-    M1[OnlineDataset]
-    M2[DAE]
-    M3[U-Net]
-    M4[Loss Functions]
-    M5[Training Loop]
-    M6[E2E Pipeline]
-  end
-  subgraph Array_Processing
-    A1[Beamforming]
-    A2[GCC-PHAT]
-    A3[MUSIC]
-    A4[E2E Integration]
-  end
-  subgraph Results
-    R1[SI-SDR]
-  end
+kanban
+  Backlog
+    [Identify mono datasets]
+    [Gradio Demo]
+    [Atmos Absorption]
+    [SI-SDR Benchmarking]
+  Completed
+    [250kHz Support]
+    [Noise Models]
+    [Multi-Source Mixing]
+    [Reverberation]
+    [Sensor Perturbation]
+    [Source Movement]
+    [OnlineDataset]
+    [DAE Implementation]
+    [U-Net Architecture]
+    [Loss Functions]
+    [E2E Pipeline]
+    [Beamforming]
+    [GCC-PHAT]
+    [MUSIC Algorithm]
 ```
 
 ## Backlog
@@ -94,6 +83,7 @@ graph TD
 
 - [x] Initial Project Setup
 - [x] Add unit tests for STFT inversions and beamforming delays
+- [x] Add comprehensive 3D spatial unit tests (azimuth & elevation)
 
 %% kanban:settings
 ```

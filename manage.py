@@ -31,7 +31,7 @@ def test():
     Path(results_dir).mkdir(parents=True, exist_ok=True)
 
     report_path = os.path.join(results_dir, report_file)
-    cmd = ["pytest", test_dir, f"--junitxml={report_path}"]
+    cmd = ["python", "-m", "pytest", test_dir, f"--junitxml={report_path}"]
 
     click.echo(f"Running tests in {test_dir}...")
     subprocess.run(cmd, check=False)
@@ -49,10 +49,9 @@ def run():
     """Run the application."""
     src_dir = DIRS.get("src", "src")
     main_file = os.path.join(src_dir, "main.py")
-    cmd = ["python", main_file]
+    cmd = ["python", "-m", "src.main"]
     click.echo(f"Running {main_file}...")
-    # subprocess.run(cmd, check=False) # main.py might not exist yet
-    click.echo("Main entry point not yet implemented.")
+    subprocess.run(cmd, check=False)
 
 @cli.command()
 def download_data():

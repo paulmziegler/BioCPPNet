@@ -62,7 +62,7 @@ kanban
 - [x] **Setup training loop with YAML config**
 - [x] **Reimplement BioCPPNet U-Net architecture**
 - [x] **Implement Loss Functions (L1, STFT, SC)**
-- [ ] Integrate End-to-End Pipeline (Beamformer + DAE + U-Net)
+- [x] Integrate End-to-End Pipeline (Beamformer + DAE + U-Net)
 
 
 ## Array Processing

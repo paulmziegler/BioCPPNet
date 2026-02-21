@@ -7,30 +7,38 @@ kanban-plugin: basic
 ## Visual Board
 
 ```mermaid
-kanban
-  Backlog
-    [Identify and download public mono datasets]
-    [Develop interactive demo (Gradio)]
-    [Implement Atmospheric Absorption]
-    [Implement Source Movement Trajectories]
-  Signal Pipeline
-    [Handle high sampling rates (250kHz)]
-    [Implement Noise Models]
-    [Multi-Source Mixing]
-    [Reverberation]
-    [Sensor Perturbation]
-  Modeling
-    [Create PyTorch OnlineDataset]
-    [Implement Denoising Autoencoder (DAE)]
-    [Reimplement BioCPPNet U-Net]
-    [Implement Loss Functions]
-    [Setup training loop]
-  Array Processing
-    [Implement Delay-and-Sum Beamforming]
-    [Implement Sub-sample Delay Estimation (GCC-PHAT)]
-    [Implement MUSIC algorithm]
-  Results
-    [SI-SDR Benchmarking]
+graph TD
+  subgraph Backlog
+    B1[Identify mono datasets]
+    B2[Gradio Demo]
+    B3[Atmos Absorption]
+    B4[Trajectories]
+  end
+  subgraph Signal_Pipeline
+    S1[250kHz Support]
+    S2[Noise Models]
+    S3[Multi-Source]
+    S4[Reverb]
+    S5[Sensor Perturb]
+    S6[Source Movement]
+  end
+  subgraph Modeling
+    M1[OnlineDataset]
+    M2[DAE]
+    M3[U-Net]
+    M4[Loss Functions]
+    M5[Training Loop]
+    M6[E2E Pipeline]
+  end
+  subgraph Array_Processing
+    A1[Beamforming]
+    A2[GCC-PHAT]
+    A3[MUSIC]
+    A4[E2E Integration]
+  end
+  subgraph Results
+    R1[SI-SDR]
+  end
 ```
 
 ## Backlog

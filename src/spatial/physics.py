@@ -43,6 +43,39 @@ def azimuth_elevation_to_vector(
     
     return np.array([x, y, z])
 
+def apply_dynamic_subsample_shifts(
+    signal: np.ndarray, delays_seconds: np.ndarray, sample_rate: int
+) -> np.ndarray:
+    """
+    Applies precise time-varying sub-sample time delays to a signal using cubic interpolation.
+
+    Args:
+        signal: (N_samples,) 1D array representing the mono source signal.
+        delays_seconds: (N_channels, N_samples) array of time-varying delays to apply.
+        sample_rate: Sampling frequency in Hz.
+
+    Returns:
+        (N_channels, N_samples) array of shifted signals.
+    """
+    from scipy.interpolate import interp1d
+
+    n_samples = signal.shape[-1]
+    n_channels = delays_seconds.shape[0]
+
+    # Original time axis
+    t = np.arange(n_samples) / sample_rate
+
+    # Create interpolator for the original signal
+    interpolator = interp1d(t, signal, kind='cubic', bounds_error=False, fill_value=0.0)
+
+    shifted_signals = np.zeros((n_channels, n_samples))
+    for i in range(n_channels):
+        # We sample the original signal at t - delay.
+        t_sample = t - delays_seconds[i]
+        shifted_signals[i] = interpolator(t_sample)
+
+    return shifted_signals
+
 def apply_subsample_shifts(
     signal: np.ndarray, delays_seconds: np.ndarray, sample_rate: int
 ) -> np.ndarray:

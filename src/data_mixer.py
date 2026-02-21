@@ -2,6 +2,7 @@ import numpy as np
 
 from src.noise_models import ColoredNoise, RainNoise, WhiteNoise
 from src.spatial.physics import (
+    apply_dynamic_subsample_shifts,
     apply_subsample_shifts,
     azimuth_elevation_to_vector,
     calculate_steering_vector,
@@ -93,6 +94,56 @@ class DataMixer:
             reverberant_tail = np.pad(reverberant_tail, ((0,0), (0, pad_reverb)))
             
         return direct_signal + reverberant_tail
+
+    def spatialise_trajectory(
+        self,
+        mono_signal: np.ndarray,
+        azimuths_deg: np.ndarray,
+        elevations_deg: np.ndarray = None,
+    ) -> np.ndarray:
+        """
+        Converts a mono signal into a multichannel signal by simulating
+        propagation delays to the microphone array for a moving source.
+
+        Args:
+            mono_signal: (N_samples,) 1D array.
+            azimuths_deg: (N_samples,) array of source directions in XY plane.
+            elevations_deg: (N_samples,) array of source elevations. Optional.
+
+        Returns:
+            (N_channels, N_samples) multichannel array.
+        """
+        n_samples = mono_signal.shape[-1]
+        
+        if elevations_deg is None:
+            elevations_deg = np.zeros_like(azimuths_deg)
+            
+        if azimuths_deg.shape[-1] != n_samples:
+            raise ValueError("Length of azimuths_deg must match length of mono_signal.")
+            
+        # Calculate source vectors for all time steps
+        az_rad = np.radians(azimuths_deg)
+        el_rad = np.radians(elevations_deg)
+        
+        x = np.cos(az_rad) * np.cos(el_rad)
+        y = np.sin(az_rad) * np.cos(el_rad)
+        z = np.sin(el_rad)
+        
+        # (N_samples, 3)
+        source_vecs = np.column_stack((x, y, z))
+        
+        # calculate distance diffs for all time steps
+        # mic_positions: (N_channels, 3)
+        # source_vecs.T: (3, N_samples)
+        # distance_diffs: (N_channels, N_samples)
+        distance_diffs = np.dot(self.mic_positions, source_vecs.T)
+        
+        delays = -distance_diffs / self.speed_of_sound
+        
+        # We need to apply dynamic shift
+        direct_signal = apply_dynamic_subsample_shifts(mono_signal, delays, self.sample_rate)
+        
+        return direct_signal
 
     def apply_sensor_perturbation(
         self,

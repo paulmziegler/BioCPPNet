@@ -1,6 +1,8 @@
 import click
 import numpy as np
+
 from src.pipeline import BioCPPNetPipeline
+
 
 @click.command()
 @click.option('--duration', default=1.0, help='Duration of mock audio in seconds.')

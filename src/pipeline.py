@@ -1,11 +1,11 @@
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from src.models.dae import SpectrogramDAE
 from src.models.unet import BioCPPNet
 from src.spatial.beamforming import Beamformer
 from src.utils import CONFIG
+
 
 class BioCPPNetPipeline:
     """

@@ -39,6 +39,43 @@ def test_spatialise_signal_basic():
     diff = peak_mic1 - peak_mic2
     assert 2 <= diff <= 4
 
+def test_spatialise_trajectory():
+    """Verify trajectory spatialisation produces varying delays."""
+    fs = 1000
+    mixer = DataMixer(sample_rate=fs)
+    mixer.mic_positions = np.array([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0]  # 1 meter away
+    ])
+    mixer.speed_of_sound = 343.0
+    
+    # We will simulate a source moving from azimuth 90 (Y-axis, broadside) 
+    # to azimuth 0 (X-axis, endfire).
+    # At broadside, distance is same to both mics, delay diff is 0.
+    # At endfire, Mic 2 is closer, delay diff is max.
+    
+    signal = np.sin(2 * np.pi * 10 * np.linspace(0, 1, fs))
+    azimuths = np.linspace(90.0, 0.0, fs)
+    
+    multi = mixer.spatialise_trajectory(signal, azimuths)
+    
+    # Shape check
+    assert multi.shape == (2, 1000)
+    
+    # Simple check: delay between channels should increase over time
+    # Check correlation near start vs near end
+    start_chunk_1 = multi[0, :100]
+    start_chunk_2 = multi[1, :100]
+    # At start (90 deg), they should be nearly identical (no delay diff)
+    assert np.corrcoef(start_chunk_1, start_chunk_2)[0, 1] > 0.99
+    
+    end_chunk_1 = multi[0, -100:]
+    end_chunk_2 = multi[1, -100:]
+    # At end (0 deg), delay is 1m/343ms = ~2.9 samples, causing phase shift
+    # Correlation should be slightly lower
+    corr_end = np.corrcoef(end_chunk_1, end_chunk_2)[0, 1]
+    assert corr_end < 0.99
+
 def test_mix_signals_snr():
     """Verify mixing maintains SNR logic."""
     mixer = DataMixer()

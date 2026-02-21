@@ -52,7 +52,7 @@ kanban
 - [x] **Multi-Source Mixing:** Support arbitrary N sources.
 - [x] **Reverberation:** Convolution with synthetic/real RIRs.
 - [x] **Sensor Perturbation:** Random gain/phase mismatch per channel.
-- [ ] **Source Movement:** Trajectory-based delays.
+- [x] **Source Movement:** Trajectory-based delays.
 
 
 ## Modeling
@@ -70,7 +70,7 @@ kanban
 - [x] Implement Delay-and-Sum Beamforming
 - [x] **Implement Sub-sample Delay Estimation (GCC-PHAT + Interpolation)**
 - [ ] Implement MUSIC algorithm for DoA estimation
-- [ ] Integrate beamformed signal as input to BioCPPNet
+- [x] Integrate beamformed signal as input to BioCPPNet
 
 
 ## Results

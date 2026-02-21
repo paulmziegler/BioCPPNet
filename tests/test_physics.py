@@ -64,3 +64,30 @@ def test_subsample_shift_sine_wave():
     # Ignore edges due to FFT assumption of periodicity (though integer cycles helps)
     error = np.max(np.abs(shifted - expected))
     assert error < 1e-5, f"Max error {error} is too high for analytical sine shift"
+
+def test_apply_dynamic_subsample_shifts():
+    """Verify time-varying sub-sample shifts."""
+    from src.spatial.physics import apply_dynamic_subsample_shifts
+    fs = 1000.0
+    freq = 10.0
+    duration = 1.0
+    n_samples = int(fs * duration)
+    t = np.linspace(0, duration, n_samples, endpoint=False)
+    
+    # Signal: sin(2*pi*f*t)
+    signal = np.sin(2 * np.pi * freq * t)
+    
+    # We create a linearly increasing delay from 0 to T/4
+    # delay(t) = (T/4) * t
+    max_delay = 0.025
+    delay_array = np.linspace(0, max_delay, n_samples)
+    
+    # Output should be sin(2*pi*f*(t - delay(t)))
+    expected = np.sin(2 * np.pi * freq * (t - delay_array))
+    
+    # The function expects delays of shape (N_channels, N_samples)
+    shifted = apply_dynamic_subsample_shifts(signal, delay_array.reshape(1, -1), fs)[0]
+    
+    # Because interpolation isn't perfect, error threshold is slightly higher
+    error = np.max(np.abs(shifted - expected))
+    assert error < 1e-2, f"Max error {error} is too high for dynamic sine shift"

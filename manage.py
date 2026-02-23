@@ -153,6 +153,14 @@ def evaluate():
         duration = 1.0
         n_samples = int(duration * sample_rate)
         
+        # Load trained weights if they exist
+        checkpoint_path = "results/checkpoints/dae_epoch_50.pt"
+        if os.path.exists(checkpoint_path):
+            click.echo(f"Loading trained weights from {checkpoint_path}...")
+            pipeline.load_weights(dae_path=checkpoint_path)
+        else:
+            click.echo("Warning: No trained weights found. Using random initialization.")
+        
         # 1. Generate clean target signal (e.g., 4kHz tone)
         t = np.arange(n_samples) / sample_rate
         clean_signal = np.sin(2 * np.pi * 4000 * t).astype(np.float32)
@@ -177,6 +185,16 @@ def evaluate():
         click.echo(f"Evaluation complete. SI-SDR score: {score:.2f} dB")
     except ImportError as e:
         click.echo(f"Error importing dependencies for evaluation: {e}")
+
+@cli.command()
+def demo():
+    """Run the interactive Gradio demo."""
+    click.echo("Starting Gradio demo...")
+    try:
+        import app
+        app.demo.launch(server_name="0.0.0.0", server_port=8502, share=False)
+    except ImportError as e:
+        click.echo(f"Error importing dependencies for demo. Did you run 'pip install gradio'? {e}")
 
 if __name__ == "__main__":
     cli()

@@ -101,6 +101,7 @@ BioaccousticCPP/
 │   └── ...
 ├── unit test results/     # Test execution reports
 │   └── session_TIMESTAMP/ # Per-run output folder (plots/logs)
+├── app.py                 # Gradio Interactive Demo
 ├── manage.py              # CLI management tool
 └── project_config.yaml    # Configuration
 ```

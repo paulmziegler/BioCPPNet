@@ -3,5 +3,7 @@ services:
     build: .
     volumes:
       - .:/app
+    ports:
+      - "8502:8502"
     command: tail -f /dev/null
     container_name: biocppnet

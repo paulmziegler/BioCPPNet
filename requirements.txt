@@ -10,3 +10,4 @@ matplotlib
 tqdm
 datasets
 huggingface_hub
+gradio

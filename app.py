@@ -94,8 +94,7 @@ def process_audio(audio_file, target_azimuth):
         
     except Exception as e:
         import traceback
-        return None, None, None, f"Error during processing: {str(e)}
-{traceback.format_exc()}"
+        return None, None, None, f"Error during processing: {str(e)}\n{traceback.format_exc()}"
 
 # Gradio Interface
 with gr.Blocks(title="BioCPPNet - Cocktail Party Problem Solver") as demo:

@@ -8,6 +8,7 @@
 -   [[Signal_Specification|Signal Specification]]: Sampling rates (250kHz) and data formats.
 -   [[Data_Augmentation_Strategy|Data Augmentation Strategy]]: Closing the reality gap with reverb and noise.
 -   [[KANBAN|Project Kanban Board]]: Track tasks, bugs, and feature requests.
+-   [[Evaluation_Report|Project Evaluation Report]]: Read the latest performance metrics and training outcomes.
 
 ### Core Models & Algorithms
 -   [[Model_UNet|BioCPPNet U-Net]]: The main source separation model.

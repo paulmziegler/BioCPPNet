@@ -19,8 +19,20 @@
 ## 🚀 Getting Started
 
 ### Prerequisites
+- **ffmpeg:** You must install ffmpeg and add it to your system's PATH. Download it from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html).
 - Docker & Docker Compose
 - Python 3.11+ (for local development)
+
+### Recording Real-World Data
+The project includes a PowerShell script to capture synchronized, multichannel audio and video.
+
+1.  **Open PowerShell:** Navigate to the project's root directory.
+2.  **Run the script:**
+    ```powershell
+    .\\record_av.ps1
+    ```
+3.  **Select Devices:** Follow the on-screen prompts to choose your audio interface and camera.
+4.  **Stop Recording:** Press 'q' in the terminal window to stop. Your files will be saved in the `recordings/` directory.
 
 ### Quick Start (Docker)
 Run the application using Docker Compose:

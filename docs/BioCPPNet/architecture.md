@@ -103,6 +103,7 @@ BioaccousticCPP/
 │   └── session_TIMESTAMP/ # Per-run output folder (plots/logs)
 ├── app.py                 # Gradio Interactive Demo
 ├── manage.py              # CLI management tool
+├── record_av.ps1          # PowerShell script for A/V recording
 └── project_config.yaml    # Configuration
 ```
 

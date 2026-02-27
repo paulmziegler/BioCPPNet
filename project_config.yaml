@@ -24,7 +24,7 @@ testing:
   plot_format: "png"
 
 audio:
-  sample_rate: 250000
+  sample_rate: 48000
   n_fft: 1024
   hop_length: 512
   win_length: 1024

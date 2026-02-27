@@ -38,7 +38,8 @@ def test_spatial_reconstruction_via_beamforming(az, el):
     beamforming towards that exact direction recovers the original signal accurately,
     and beamforming towards an orthogonal direction results in lower energy.
     """
-    sample_rate = 250000
+    from src.utils import CONFIG
+    sample_rate = CONFIG.get("audio", {}).get("sample_rate", 48000)
     speed_of_sound = 343.0
     
     # 4-mic 3D array (tetrahedron-like or 3D cube) to ensure sensitivity in all dimensions (X, Y, Z)

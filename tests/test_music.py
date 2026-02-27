@@ -11,7 +11,8 @@ from src.spatial.physics import (
 
 def test_music_estimate():
     """Verify MUSIC can estimate DoA of a single tone."""
-    sample_rate = 250000
+    from src.utils import CONFIG
+    sample_rate = CONFIG.get("audio", {}).get("sample_rate", 48000)
     speed_of_sound = 343.0
     
     # 4-mic square array

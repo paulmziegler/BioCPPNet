@@ -13,8 +13,11 @@ class Beamformer:
     Handles spatial filtering and Direction of Arrival (DoA) estimation.
     Designed for multichannel microphone arrays.
     """
-    def __init__(self, sample_rate: int = 250000):
-        self.sample_rate = sample_rate
+    def __init__(self, sample_rate: int = None):
+        if sample_rate is None:
+            self.sample_rate = CONFIG.get("audio", {}).get("sample_rate", 250000)
+        else:
+            self.sample_rate = sample_rate
         
         # Load array configuration
         array_config = CONFIG.get("array", {})

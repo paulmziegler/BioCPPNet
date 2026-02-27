@@ -3,9 +3,10 @@
 This document outlines the technical requirements for acoustic signal processing within the BioCPPNet project.
 
 ## 1. Sampling Rate
-- **Target Rate:** 250,000 Hz (250 kHz).
-- **Rationale:** Necessary to capture high-frequency bioacoustic vocalizations (e.g., bats, macaques) which can exceed 100 kHz. Adheres to the Nyquist theorem to prevent aliasing.
-- **Hardware Target:** miniDSP UMA-16 or equivalent high-speed multichannel arrays.
+- **Default Rate:** 48,000 Hz (48 kHz).
+- **Configurable:** The project sample rate is now fully configurable via `project_config.yaml`. All modules, including the physics engine, data mixer, and deep learning pipeline, will dynamically adapt to the rate specified in the configuration file.
+- **Rationale:** The original target of 250kHz was to capture high-frequency bioacoustics. The new default of 48kHz is a common professional audio standard that is compatible with a wider range of microphones and recording devices. The system remains capable of handling rates up to and beyond 250kHz.
+- **Hardware Target:** miniDSP UMA-16 (for high-speed) or any standard multichannel audio interface.
 
 ## 2. Signal Representation
 

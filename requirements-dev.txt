@@ -1,3 +1,7 @@
 pytest
 ruff
 pre-commit
+PyQt6
+sounddevice
+opencv-python
+pyqtgraph

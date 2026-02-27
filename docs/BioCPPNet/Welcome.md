@@ -24,8 +24,10 @@
 - Python 3.11+ (for local development)
 
 ### Recording Real-World Data
-The project includes a PowerShell script to capture synchronized, multichannel audio and video.
+The project includes multiple tools for capturing synchronized, multichannel audio and video:
 
+#### 1. Simple Command-Line Recording (using `record_av.ps1`)
+This script uses `ffmpeg` for straightforward audio/video capture without a live preview.
 1.  **Open PowerShell:** Navigate to the project's root directory.
 2.  **Run the script:**
     ```powershell
@@ -33,6 +35,16 @@ The project includes a PowerShell script to capture synchronized, multichannel a
     ```
 3.  **Select Devices:** Follow the on-screen prompts to choose your audio interface and camera.
 4.  **Stop Recording:** Press 'q' in the terminal window to stop. Your files will be saved in the `recordings/` directory.
+
+#### 2. Advanced GUI Recording with Real-time Previews (using `recorder_app.py`)
+This PyQt6 application provides live video feed and audio waveform monitoring before and during recording, ensuring your devices are working correctly.
+1.  **Install Dev Dependencies:** Ensure you've run `pip install -r requirements-dev.txt` to install `PyQt6`, `sounddevice`, `opencv-python`, and `pyqtgraph`.
+2.  **Run the Application:**
+    ```bash
+    python recorder_app.py
+    ```
+3.  **Select Devices:** Use the dropdown menus in the GUI to select your audio and video devices. Observe the live previews.
+4.  **Start/Stop Recording:** Click the 'Start Recording' button. Click 'Stop Recording' to save your synchronized audio and video files to the `recordings/` directory.
 
 ### Quick Start (Docker)
 Run the application using Docker Compose:

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "architecture.md",
+                "file": "Model_UNet.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "architecture"
+              "title": "Model_UNet"
             }
           }
         ]
@@ -185,14 +185,16 @@
   },
   "active": "7af779bf5df8bf47",
   "lastOpenFiles": [
-    "Algorithm_GCC_PHAT.md",
+    "Evaluation_Report.md",
     "architecture.md",
-    "DAE_Methodology_Comparison.md",
     "Data_Augmentation_Strategy.md",
-    "Signal_Specification.md",
-    "Model_UNet.md",
-    "Model_DAE.md",
     "KANBAN.md",
+    "Model_DAE.md",
+    "Model_UNet.md",
+    "Signal_Specification.md",
+    "DAE_Methodology_Comparison.md",
+    "Algorithm_GCC_PHAT.md",
+    "Algorithm_MUSIC.md",
     "Welcome.md",
     "Untitled 1.canvas",
     "Untitled.canvas",

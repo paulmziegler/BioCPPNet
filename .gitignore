@@ -42,3 +42,7 @@ htmlcov/
 
 # MyPy
 .mypy_cache/
+/recordings
+/unit test results
+/logs
+/data/raw

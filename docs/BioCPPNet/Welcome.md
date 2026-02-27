@@ -37,14 +37,19 @@ This script uses `ffmpeg` for straightforward audio/video capture without a live
 4.  **Stop Recording:** Press 'q' in the terminal window to stop. Your files will be saved in the `recordings/` directory.
 
 #### 2. Advanced GUI Recording with Real-time Previews (using `recorder_app.py`)
-This PyQt6 application provides live video feed and audio waveform monitoring before and during recording, ensuring your devices are working correctly.
+This PyQt6 application provides a comprehensive real-time monitoring solution for your recording sessions.
+- **Live Video Preview:** See the feed from your selected camera to ensure it's positioned correctly.
+- **Dual Audio Plots:** Monitor the incoming audio signals in both the time domain (scrolling waveform) and the frequency domain (real-time FFT spectrum analyzer).
+- **Configurable Output:** Use the "Browse" button to select a custom folder for your recordings.
+
+**Instructions:**
 1.  **Install Dev Dependencies:** Ensure you've run `pip install -r requirements-dev.txt` to install `PyQt6`, `sounddevice`, `opencv-python`, and `pyqtgraph`.
 2.  **Run the Application:**
     ```bash
     python recorder_app.py
     ```
-3.  **Select Devices:** Use the dropdown menus in the GUI to select your audio and video devices. Observe the live previews.
-4.  **Start/Stop Recording:** Click the 'Start Recording' button. Click 'Stop Recording' to save your synchronized audio and video files to the `recordings/` directory.
+3.  **Select Devices & Folder:** Use the dropdown menus to select your devices and choose an output directory.
+4.  **Start/Stop Recording:** Click the 'Start Recording' button. Click 'Stop Recording' to save your synchronized audio and video files.
 
 ### Quick Start (Docker)
 Run the application using Docker Compose:

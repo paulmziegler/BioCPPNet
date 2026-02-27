@@ -166,6 +166,16 @@ class BioacousticRecorderApp(QMainWindow):
         
         self.layout.addLayout(device_selection_layout)
 
+        # Output Folder Selection
+        output_layout = QHBoxLayout()
+        output_layout.addWidget(QLabel("Output Folder:"))
+        self.output_dir_line_edit = QLineEdit(self.output_dir)
+        output_layout.addWidget(self.output_dir_line_edit)
+        self.browse_button = QPushButton("Browse")
+        self.browse_button.clicked.connect(self._browse_for_folder)
+        output_layout.addWidget(self.browse_button)
+        self.layout.addLayout(output_layout)
+        
         # Recording Controls
         control_layout = QHBoxLayout()
         self.record_button = QPushButton("Start Recording")
@@ -177,7 +187,7 @@ class BioacousticRecorderApp(QMainWindow):
         self.layout.addLayout(control_layout)
 
         # Live Previews
-        preview_layout = QHBoxLayout()
+        previews_and_plots_layout = QHBoxLayout()
         
         # Video Preview
         video_stream_layout = QVBoxLayout()
@@ -188,36 +198,54 @@ class BioacousticRecorderApp(QMainWindow):
         self.video_display.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         video_stream_layout.addWidget(self.video_label)
         video_stream_layout.addWidget(self.video_display)
-        preview_layout.addLayout(video_stream_layout)
+        previews_and_plots_layout.addLayout(video_stream_layout)
         
-        # Audio Plot
-        audio_plot_layout = QVBoxLayout()
-        self.audio_label = QLabel("Audio Waveform (Channels 0-3)")
+        # --- Audio Plots Container ---
+        audio_plots_container = QVBoxLayout()
+        
+        # Audio Waveform Plot
+        self.audio_label = QLabel("Audio Waveform (Up to 7 Channels)")
         self.audio_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.audio_plot_widget = pg.PlotWidget()
         self.audio_plot_item = self.audio_plot_widget.getPlotItem()
-        self.audio_plot_item.setYRange(-1.0, 1.0) # Assuming normalized audio
-        self.audio_plot_data = [self.audio_plot_item.plot(pen=pg.mkPen(color, width=1)) 
-                               for color in ['r', 'g', 'b', 'y']] # Up to 4 channels
-        audio_plot_layout.addWidget(self.audio_label)
-        audio_plot_layout.addWidget(self.audio_plot_widget)
-        preview_layout.addLayout(audio_plot_layout)
+        self.audio_plot_item.setYRange(-1.0, 1.0)
+        self.audio_plot_data = [] # Will be populated dynamically
+        audio_plots_container.addWidget(self.audio_label)
+        audio_plots_container.addWidget(self.audio_plot_widget)
         
-        self.layout.addLayout(preview_layout)
+        # Audio Spectrum Plot
+        self.spectrum_label = QLabel("Frequency Spectrum (Channel 0)")
+        self.spectrum_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.spectrum_plot_widget = pg.PlotWidget()
+        self.spectrum_plot_item = self.spectrum_plot_widget.getPlotItem()
+        self.spectrum_plot_item.setLogMode(x=True, y=True)
+        self.spectrum_plot_item.setLabel('bottom', 'Frequency', units='Hz')
+        self.spectrum_plot_data = self.spectrum_plot_item.plot(pen='c')
+        audio_plots_container.addWidget(self.spectrum_label)
+        audio_plots_container.addWidget(self.spectrum_plot_widget)
+        
+        previews_and_plots_layout.addLayout(audio_plots_container)
+        self.layout.addLayout(previews_and_plots_layout)
 
         # Timer for updating previews
         self.preview_timer = QTimer(self)
         self.preview_timer.timeout.connect(self._update_previews)
         self.preview_interval_ms = 100 # Update ~10 times per second
         
-        # Audio buffer for plot
-        self.plot_audio_buffer = np.zeros((1024, 16), dtype=np.float32) # Store last 1024 samples for plot
-        self.buffer_idx = 0
+        # Audio buffer for plot - will be re-initialized when device is selected
+        self.plot_audio_buffer = None 
         self.audio_plot_queue = queue.Queue()
         
         self.cap = None # OpenCV VideoCapture object
         self.audio_stream = None # Sounddevice InputStream object
 
+    def _browse_for_folder(self):
+        from PyQt6.QtWidgets import QFileDialog
+        folder = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        if folder:
+            self.output_dir = folder
+            self.output_dir_line_edit.setText(folder)
+            
     def _list_devices(self):
         # List Audio Devices
         self.audio_devices = sd.query_devices()
@@ -237,8 +265,8 @@ class BioacousticRecorderApp(QMainWindow):
                     self.video_combo.addItem(f"DirectShow Camera (ID: {i})", userData=i)
                 cap.release()
             
-        if not self.audio_devices.items():
-            self.status_label.setText("No audio devices found!")
+        if self.audio_combo.count() == 0:
+            self.status_label.setText("No usable audio input devices found!")
             self.record_button.setEnabled(False)
         if not self.video_devices:
             self.status_label.setText("No video devices found!")
@@ -259,6 +287,16 @@ class BioacousticRecorderApp(QMainWindow):
             device_info = sd.query_devices(device_id)
             self.selected_audio_device_id = device_id
             self.selected_audio_channels = device_info['max_input_channels']
+
+            # Dynamically create the plot buffer
+            self.plot_audio_buffer = np.zeros((2048, self.selected_audio_channels), dtype=np.float32)
+
+            # Clear old plot lines and create new ones
+            self.audio_plot_item.clear()
+            colors = ['r', 'g', 'b', 'y', 'c', 'm', 'w']
+            self.audio_plot_data = [self.audio_plot_item.plot(pen=pg.mkPen(colors[i % len(colors)], width=1)) 
+                                   for i in range(self.selected_audio_channels)]
+            self.audio_plot_item.setYRange(-1.0, 1.0) # Reset range
             
             # Start a new preview stream
             try:
@@ -313,18 +351,48 @@ class BioacousticRecorderApp(QMainWindow):
             else:
                 self.video_display.clear()
         
-        # Update Audio Plot
+        # Update Audio Plots
+        if self.plot_audio_buffer is None:
+            return
+
+        new_data = False
+        latest_indata = None
         while not self.audio_plot_queue.empty():
             indata = self.audio_plot_queue.get()
+            latest_indata = indata
             num_samples = indata.shape[0]
+            new_data = True
             
-            # Shift old data left and add new data
+            # If the new data is larger than the buffer, only use the most recent part of it
+            if num_samples > self.plot_audio_buffer.shape[0]:
+                indata = indata[-self.plot_audio_buffer.shape[0]:, :]
+                num_samples = indata.shape[0]
+
+            # --- Update Waveform Plot ---
             self.plot_audio_buffer = np.roll(self.plot_audio_buffer, -num_samples, axis=0)
-            self.plot_audio_buffer[self.plot_audio_buffer.shape[0] - num_samples:] = indata
+            self.plot_audio_buffer[-num_samples:, :] = indata
             
-            # Update plots (up to 4 channels)
-            for i in range(min(len(self.audio_plot_data), indata.shape[1])):
+        if new_data:
+            for i in range(len(self.audio_plot_data)):
                 self.audio_plot_data[i].setData(self.plot_audio_buffer[:, i])
+                
+            # --- Update Spectrum Plot ---
+            if latest_indata is not None and latest_indata.size > 0:
+                fft_data = latest_indata[:, 0] # Use channel 0 of the latest chunk
+                
+                # Apply Hanning window to reduce spectral leakage
+                fft_result = np.fft.rfft(fft_data * np.hanning(len(fft_data)))
+                fft_magnitude = np.abs(fft_result)
+
+                # Get sample rate for frequency axis calculation
+                device_id = self.selected_audio_device_id
+                sample_rate = int(self.audio_devices[device_id]['default_samplerate'])
+                fft_freqs = np.fft.rfftfreq(len(fft_data), 1.0 / sample_rate)
+
+                # Update plot data (avoiding the DC component at index 0 for log plot)
+                if self.spectrum_plot_data is not None:
+                    self.spectrum_plot_data.setData(fft_freqs[1:], fft_magnitude[1:])
+                    self.spectrum_plot_item.enableAutoRange('y')
 
     def _toggle_recording(self):
         if not self.is_recording:
@@ -346,6 +414,9 @@ class BioacousticRecorderApp(QMainWindow):
                 self.cap.release()
                 self.cap = None # Ensure it's reset
 
+            self.output_dir = self.output_dir_line_edit.text()
+            os.makedirs(self.output_dir, exist_ok=True)
+            
             # Start recording worker in a new thread
             self.recording_worker = RecordingWorker(self.selected_audio_device_id, 
                                                   self.selected_video_device_id, 

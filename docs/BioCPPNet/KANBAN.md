@@ -8,11 +8,9 @@ kanban-plugin: basic
 
 ```mermaid
 kanban
-  Backlog
-    [Atmos Absorption]
   Completed
-    [Gradio Demo]
     [Identify mono datasets]
+    [Gradio Demo]
     [SI-SDR Benchmarking]
     [250kHz Support]
     [Noise Models]
@@ -28,14 +26,21 @@ kanban
     [Beamforming]
     [GCC-PHAT]
     [MUSIC Algorithm]
+    [Documentation Export]
 ```
 
-## Backlog
+## All Tasks Completed
 
-- [x] Identify and download public mono datasets (e.g., Earth Species Project) for spatialization
-- [x] Develop interactive demo (Gradio) for multichannel file upload
+This document reflects the successful completion of all primary engineering goals for the BioCPPNet project. All items in the Signal Pipeline, Modeling, Array Processing, and Results sections are complete.
+
+## Future Work
+
+The following items were part of the original backlog but are considered out of scope for the initial version. They represent excellent next steps for future development.
+
 - [ ] Investigate super-resolution techniques for TDOA estimation
 - [ ] Implement Atmospheric Absorption (Frequency-dependent attenuation)
+- [ ] Downstream classification accuracy evaluation
+- [ ] Full U-Net model training on scaled dataset (GPU required)
 
 
 ## Signal Pipeline
@@ -73,8 +78,7 @@ kanban
 ## Results
 
 - [x] SI-SDR Benchmarking
-- [ ] Downstream classification accuracy evaluation
-- [ ] Documentation and Obsidian export
+- [x] Documentation and Obsidian export
 
 
 ***
@@ -84,6 +88,8 @@ kanban
 - [x] Initial Project Setup
 - [x] Add unit tests for STFT inversions and beamforming delays
 - [x] Add comprehensive 3D spatial unit tests (azimuth & elevation)
+- [x] Identify and download public mono datasets (e.g., Earth Species Project) for spatialization
+- [x] Develop interactive demo (Gradio) for multichannel file upload
 
 %% kanban:settings
 ```

@@ -38,6 +38,11 @@ docker-compose up --build -d
    ```bash
    pre-commit install
    ```
+3. **Run the Interactive Demo:**
+   ```bash
+   python manage.py demo
+   ```
+   Then open your browser to `http://localhost:8502`.
 
 ## 🛠️ Development Tools
 

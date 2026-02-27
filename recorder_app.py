@@ -11,7 +11,8 @@ import pyqtgraph as pg
 
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-    QPushButton, QComboBox, QLabel, QSlider, QSizePolicy, QLineEdit
+    QPushButton, QComboBox, QLabel, QSlider, QSizePolicy, QLineEdit,
+    QCheckBox
 )
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject
 from PyQt6.QtGui import QImage, QPixmap
@@ -204,13 +205,22 @@ class BioacousticRecorderApp(QMainWindow):
         audio_plots_container = QVBoxLayout()
         
         # Audio Waveform Plot
-        self.audio_label = QLabel("Audio Waveform (Up to 7 Channels)")
-        self.audio_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        waveform_header_layout = QHBoxLayout()
+        self.waveform_label = QLabel("Audio Waveform (0 Channels)")
+        self.waveform_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        waveform_header_layout.addWidget(self.waveform_label)
+        
+        self.auto_scale_checkbox = QCheckBox("Auto-Scale Y-Axis")
+        self.auto_scale_checkbox.stateChanged.connect(self._toggle_auto_scale)
+        waveform_header_layout.addWidget(self.auto_scale_checkbox)
+        waveform_header_layout.addStretch() # Push checkbox to left but keep label centered-ish (or just let them flow)
+        
+        audio_plots_container.addLayout(waveform_header_layout)
+
         self.audio_plot_widget = pg.PlotWidget()
         self.audio_plot_item = self.audio_plot_widget.getPlotItem()
         self.audio_plot_item.setYRange(-1.0, 1.0)
         self.audio_plot_data = [] # Will be populated dynamically
-        audio_plots_container.addWidget(self.audio_label)
         audio_plots_container.addWidget(self.audio_plot_widget)
         
         # Audio Spectrum Plot
@@ -238,6 +248,13 @@ class BioacousticRecorderApp(QMainWindow):
         
         self.cap = None # OpenCV VideoCapture object
         self.audio_stream = None # Sounddevice InputStream object
+
+    def _toggle_auto_scale(self, state):
+        if state == 2: # Checked
+            self.audio_plot_item.enableAutoRange('y', True)
+        else: # Unchecked
+            self.audio_plot_item.enableAutoRange('y', False)
+            self.audio_plot_item.setYRange(-1.0, 1.0)
 
     def _browse_for_folder(self):
         from PyQt6.QtWidgets import QFileDialog
@@ -287,13 +304,21 @@ class BioacousticRecorderApp(QMainWindow):
             device_info = sd.query_devices(device_id)
             self.selected_audio_device_id = device_id
             self.selected_audio_channels = device_info['max_input_channels']
+            
+            # Update label to show detected channels
+            self.waveform_label.setText(f"Audio Waveform ({self.selected_audio_channels} Channels Detected)")
 
             # Dynamically create the plot buffer
             self.plot_audio_buffer = np.zeros((2048, self.selected_audio_channels), dtype=np.float32)
 
             # Clear old plot lines and create new ones
             self.audio_plot_item.clear()
-            colors = ['r', 'g', 'b', 'y', 'c', 'm', 'w']
+            # Extended color palette for up to 16 channels
+            colors = [
+                '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF', '#FFFFFF',
+                '#FFA500', '#800080', '#008000', '#800000', '#008080', '#000080', '#808000',
+                '#FFC0CB', '#A52A2A'
+            ]
             self.audio_plot_data = [self.audio_plot_item.plot(pen=pg.mkPen(colors[i % len(colors)], width=1)) 
                                    for i in range(self.selected_audio_channels)]
             self.audio_plot_item.setYRange(-1.0, 1.0) # Reset range

@@ -5,6 +5,7 @@
 ## 📂 Navigation
 
 -   [[architecture|Architecture Overview]]: Understanding the system design, folder structure, and Python modules.
+-   [[user_documentation|User Documentation]]: How to utilize scripts, recording tools, and CLI.
 -   [[Signal_Specification|Signal Specification]]: Sampling rates (250kHz) and data formats.
 -   [[Data_Augmentation_Strategy|Data Augmentation Strategy]]: Closing the reality gap with reverb and noise.
 -   [[KANBAN|Project Kanban Board]]: Track tasks, bugs, and feature requests.

@@ -101,8 +101,12 @@ class BioCPPNetPipeline:
             mask_logits = self.unet(denoised_log_mag)
             mask = torch.sigmoid(mask_logits)
             
-            # Apply Mask
-            target_log_mag = denoised_log_mag * mask
+            # Apply Mask in Linear Domain
+            denoised_linear_mag = torch.expm1(denoised_log_mag)
+            target_linear_mag = denoised_linear_mag * mask
+            
+            # Convert back to log-magnitude for ISTFT
+            target_log_mag = torch.log1p(target_linear_mag)
             
             # 6. Signal Reconstruction (ISTFT)
             output_wav = self.dae.spectrogram_to_wav(target_log_mag, phase)

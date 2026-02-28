@@ -64,7 +64,8 @@ def train():
     optimizer = torch.optim.Adam(
         unet.parameters(), lr=model_cfg.get("learning_rate", 0.001)
     )
-    loss_fn = BioAcousticLoss(n_fft=n_fft, hop_length=hop_length)
+    # Ignore time-domain loss (phase errors) to allow magnitude mask to learn
+    loss_fn = BioAcousticLoss(n_fft=n_fft, hop_length=hop_length, alpha_time=0.0)
     
     beamformer = Beamformer(sample_rate=sample_rate)
     window = torch.hann_window(n_fft, device=device)
@@ -135,8 +136,13 @@ def train():
             mask_logits = unet(denoised_log_mag)
             mask = torch.sigmoid(mask_logits)
             
-            # Apply Mask
-            target_log_mag = denoised_log_mag * mask
+            # Apply Mask in Linear Domain
+            # denoised_log_mag = log(1 + mag) -> mag = exp(denoised_log_mag) - 1
+            denoised_linear_mag = torch.expm1(denoised_log_mag)
+            target_linear_mag = denoised_linear_mag * mask
+            
+            # Convert back to log-magnitude for DAE reconstruction
+            target_log_mag = torch.log1p(target_linear_mag)
             
             # Reconstruct ISTFT
             # Provide phase from original STFT

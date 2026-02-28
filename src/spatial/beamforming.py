@@ -22,9 +22,41 @@ class Beamformer:
         # Load array configuration
         array_config = CONFIG.get("array", {})
         self.speed_of_sound = array_config.get("speed_of_sound", 343.0)
-        self.mic_positions = np.array(array_config.get("geometry", []))
         
-        if len(self.mic_positions) == 0:
+        # Priority: 1. Explicit geometry (list or dict), 2. Grid parameters, 3. Fallback
+        if "geometry" in array_config and array_config["geometry"]:
+            geo = array_config["geometry"]
+            if isinstance(geo, dict):
+                # Handle dictionary mapping (e.g., channel_0: [x, y, z])
+                # Sort keys numerically to ensure channel 0 is index 0, etc.
+                import re
+                def extract_number(s):
+                    match = re.search(r'\d+', s)
+                    return int(match.group()) if match else 0
+                
+                sorted_keys = sorted(geo.keys(), key=extract_number)
+                self.mic_positions = np.array([geo[k] for k in sorted_keys])
+            else:
+                self.mic_positions = np.array(geo)
+        elif array_config.get("type") == "grid":
+            grid_config = array_config.get("grid", {})
+            rows = grid_config.get("rows", 4)
+            cols = grid_config.get("cols", 4)
+            sx = grid_config.get("spacing_x", 0.04)
+            sy = grid_config.get("spacing_y", 0.04)
+            
+            # Generate 4x4 grid (or rows x cols)
+            # Centered around (0,0)
+            x = np.arange(cols) * sx
+            y = np.arange(rows) * sy
+            x -= np.mean(x)
+            y -= np.mean(y)
+            
+            xx, yy = np.meshgrid(x, y)
+            self.mic_positions = np.zeros((rows * cols, 3))
+            self.mic_positions[:, 0] = xx.flatten()
+            self.mic_positions[:, 1] = yy.flatten()
+        else:
             # Fallback
             self.mic_positions = np.array([
                 [0.0, 0.0, 0.0],

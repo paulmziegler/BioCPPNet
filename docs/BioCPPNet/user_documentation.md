@@ -61,6 +61,14 @@ A PowerShell script that handles the entire Docker workflow:
 .\build_and_train.ps1 -NumTrainingFiles 100
 ```
 
+### 4. Acoustic Camera Generation (`run_acoustic_camera.ps1`)
+A PowerShell script that processes synchronized `.wav` and `.avi` files in the `recordings/outside` directory. It calculates a 2D spatial acoustic heatmap for each second of audio and cleanly overlays it onto the corresponding video frame.
+- **Environment:** Executes securely inside the `biocppnet` Docker container using `docker-compose run`.
+- **Output:** Annotated video frames are saved as JPG images in `results/acoustic_camera/`.
+```powershell
+.\run_acoustic_camera.ps1
+```
+
 ---
 
 ## 🎤 Data Collection Tools

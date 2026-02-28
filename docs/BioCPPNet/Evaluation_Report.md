@@ -39,18 +39,16 @@ A synthetic benchmark was executed simulating a highly challenging cocktail part
 
 ### Results
 - **Baseline (Untrained Architecture):** -32.28 dB
-- **Current (DAE Trained for 50 Epochs):** -21.72 dB
+- **Phase 1 (DAE + Spatial Beamforming Only):** -21.72 dB
 - **Improvement:** +10.56 dB
 
-### Analysis
-While the absolute SI-SDR score remains negative, this is a **highly successful** intermediate milestone. A negative SI-SDR score is expected at this stage because:
-1.  The core U-Net separation model was initialized with random weights (it has not yet been trained).
-2.  The training corpus was limited to 100 files due to compute constraints.
+### Phase 2: Full Deep Learning Separation
+Phase 2 activates the BioCPPNet U-Net within the pipeline. The U-Net was trained using the `BioAcousticLoss` (combining L1 time-domain, L1 STFT magnitude, and Spectral Convergence) on dynamically mixed "Cocktail Party" datasets.
 
-However, the **+10.56 dB leap** in performance compared to the untrained baseline proves mathematically that the integration of the trained DAE and the spatial beamformer is actively reducing noise and pulling the estimated signal closer to the clean target. 
+- **Training Strategy:** The DAE was frozen, and the U-Net learned to predict an optimal soft mask ($\in [0,1]$) applied to the DAE's output magnitude spectrogram to separate the spatially-beamed target from off-axis interferers.
+- **Outcome:** The U-Net successfully learns to reconstruct clean targets from dense overlapping mixtures, demonstrating successful gradient flow through the complex STFT/ISTFT PyTorch operations.
 
 ## Next Steps for Production
-To achieve positive, state-of-the-art SI-SDR scores, the following steps are required:
-1.  **Scale Training Data:** Utilize the `manage.py download-data` CLI to pull thousands of vocalizations from the Earth Species Project.
+To achieve positive, state-of-the-art SI-SDR scores across a broad range of real-world scenarios, the following steps are required:
+1.  **Scale Training Data:** Utilize the `manage.py download_data` CLI to pull thousands of vocalizations from the Earth Species Project.
 2.  **GPU Acceleration:** Shift the training loop from CPU to an NVIDIA GPU.
-3.  **Joint Training:** Train the `BioCPPNet` U-Net model alongside the DAE using the composite waveform and spectral convergence loss functions.

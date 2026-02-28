@@ -37,6 +37,33 @@ This document reflects the successful completion of all primary engineering goal
 
 The following items were part of the original backlog but are considered out of scope for the initial version. They represent excellent next steps for future development.
 
+### Phase 1: Spatial Isolation (Immediate Implementation)
+- [ ] Modify MUSIC for Multiple Sources ($K$ peaks extraction).
+- [ ] Multi-Beam Extraction in Pipeline (Run Delay-and-Sum $K$ times).
+- [ ] Denoise the $K$ streams with trained DAE.
+- [ ] Temporarily Bypass untrained U-Net in Pipeline.
+
+### Phase 2: Deep Learning Separation (Next Steps)
+- [x] Step 1: Data Generation Strategy (The "Cocktail" Dataset)
+  - [x] Update DataMixer to support multi-source overlap and spatialization
+  - [x] Configure OnlineDataset to yield multichannel noisy mixture and isolated clean target
+- [x] Step 2: U-Net Training Loop Execution
+  - [x] Adapt train.py to train only U-Net while freezing DAE weights
+  - [x] Execute U-Net training with composite loss
+- [x] Step 3: Pipeline Re-integration
+  - [x] Re-enable U-Net masking logic in BioCPPNetPipeline
+  - [x] Ensure manage.py evaluate and app.py load newly trained U-Net weights
+- [x] Step 4: Additional Unit Tests
+  - [x] test_cocktail_mixer.py
+  - [x] test_online_dataset.py
+  - [x] test_unet_training_step.py
+  - [x] test_pipeline_unet_active.py
+- [x] Step 5: Planned Documentation Updates
+  - [x] Update Data_Augmentation_Strategy.md
+  - [x] Update Model_UNet.md
+  - [x] Update Evaluation_Report.md
+  - [x] Update user_documentation.md
+
 - [ ] Investigate super-resolution techniques for TDOA estimation
 - [ ] Implement Atmospheric Absorption (Frequency-dependent attenuation)
 - [ ] Downstream classification accuracy evaluation

@@ -28,7 +28,8 @@ class BioAcousticDataset(IterableDataset):
         sample_rate: int = 250000,
         duration: float = 1.0,
         n_channels: int = 4,
-        return_geometry: bool = False
+        return_geometry: bool = False,
+        num_interferers: int = 1
     ):
         super().__init__()
         self.clean_files = clean_files
@@ -37,6 +38,7 @@ class BioAcousticDataset(IterableDataset):
         self.n_samples = int(sample_rate * duration)
         self.n_channels = n_channels
         self.return_geometry = return_geometry
+        self.num_interferers = num_interferers
         
         # Initialize DataMixer
         self.mixer = DataMixer(sample_rate=sample_rate)
@@ -95,75 +97,75 @@ class BioAcousticDataset(IterableDataset):
             print(f"Error loading {filepath}: {e}")
             return self._generate_synthetic_source()
 
-    def __iter__(self) -> Iterator[Tuple[torch.Tensor, torch.Tensor]]:
+    def __iter__(self) -> Iterator[Tuple[torch.Tensor, torch.Tensor, float]]:
         """
         Infinite iterator for DataLoader.
         """
         
         while True:
             # 1. Get Source (Target)
-            if self.clean_files:
-                clean_mono = self._load_source()
-            else:
-                clean_mono = self._generate_synthetic_source()
+            clean_mono_target = self._load_source()
 
-            # 2. Pick Random Location
-            azimuth = np.random.uniform(0, 180) # Frontal semi-circle
+            # 2. Pick Random Location for target
+            target_azimuth = np.random.uniform(0, 180) # Frontal semi-circle
             
-            # 3. Spatialise Target (Clean Reference)
-            # We want the clean target as it appears at the array (or at reference mic)
-            clean_multichannel = self.mixer.spatialise_signal(
-                clean_mono, azimuth, add_reverb=False
+            # 3. Spatialise Target
+            # We want the clean target as it appears at the reference mic (mono)
+            target_multichannel = self.mixer.spatialise_signal(
+                clean_mono_target, target_azimuth, add_reverb=False
+            )
+            # Reference mic is channel 0
+            clean_reference_target = target_multichannel[0:1, :]
+            
+            # 4. Generate Target with Reverb
+            reverberant_target = self.mixer.spatialise_signal(
+                clean_mono_target, target_azimuth, add_reverb=True, rt60=np.random.uniform(0.1, 0.5)
             )
             
-            # 4. Generate & Add Interference (Noise)
-            # Scenario: Target + Pink Noise + Reverb
+            sources_to_mix = [reverberant_target]
             
-            # Apply reverb to the "clean" path for the mixture? 
-            # Usually: 
-            # Mixture = Source * RIR + Noise
-            # Target = Source * Direct_Path (or Reference Mic)
-            
-            # Let's add reverb to the mixture component
-            reverberant_source = self.mixer.spatialise_signal(
-                clean_mono, azimuth, add_reverb=True, rt60=np.random.uniform(0.1, 0.5)
-            )
-            
-            # Crop reverb tail to maintain fixed length for batching
-            if reverberant_source.shape[1] > self.n_samples:
-                reverberant_source = reverberant_source[:, : self.n_samples]
-            elif reverberant_source.shape[1] < self.n_samples:
-                reverberant_source = np.pad(
-                    reverberant_source,
-                    ((0, 0), (0, self.n_samples - reverberant_source.shape[1])),
+            # 5. Generate Interferers
+            for _ in range(self.num_interferers):
+                interferer_mono = self._load_source()
+                # Ensure interferer is somewhat separated spatially
+                interferer_azimuth = np.random.uniform(0, 180)
+                reverberant_interferer = self.mixer.spatialise_signal(
+                    interferer_mono, interferer_azimuth, add_reverb=True, rt60=np.random.uniform(0.1, 0.5)
                 )
+                
+                # Scale interferer for SNR
+                # Target is reference. Let's make interferer SNR randomly between 0 to 10 dB lower or higher
+                snr_db = np.random.uniform(-5, 5)
+                p_target = np.mean(reverberant_target**2)
+                p_interferer = np.mean(reverberant_interferer**2)
+                if p_interferer > 0:
+                    scale = np.sqrt(p_target / (p_interferer * (10**(snr_db/10))))
+                    reverberant_interferer *= scale
+                    
+                sources_to_mix.append(reverberant_interferer)
+                
+            # 6. Mix all sources
+            mixture = self.mixer.mix_multiple(sources_to_mix)
+
+            # Crop or pad mixture and target to maintain fixed length for batching
+            if mixture.shape[1] > self.n_samples:
+                mixture = mixture[:, : self.n_samples]
+            elif mixture.shape[1] < self.n_samples:
+                mixture = np.pad(mixture, ((0, 0), (0, self.n_samples - mixture.shape[1])))
+                
+            if clean_reference_target.shape[1] > self.n_samples:
+                clean_reference_target = clean_reference_target[:, : self.n_samples]
+            elif clean_reference_target.shape[1] < self.n_samples:
+                clean_reference_target = np.pad(clean_reference_target, ((0, 0), (0, self.n_samples - clean_reference_target.shape[1])))
 
             # Add Environmental Noise (Wind/Thermal)
-            # Random SNR between 0 and 20 dB
-            snr = np.random.uniform(0, 20)
+            snr_noise = np.random.uniform(10, 20)
             noisy_mixture = self.mixer.add_noise(
-                reverberant_source, noise_type='pink', snr_db=snr
+                mixture, noise_type='pink', snr_db=snr_noise
             )
             
             # 5. Convert to Tensor
-            # Shape: (Channels, Time)
             input_tensor = torch.from_numpy(noisy_mixture).float()
+            target_tensor = torch.from_numpy(clean_reference_target).float()
             
-            # Target: Usually we want to predict the clean direct path
-            # at the reference mic (Ch0)
-            # Shape: (1, Time) or (Channels, Time) depending on task
-            # (mask estimation vs beamforming)
-            # Let's return the full clean spatialised signal (Direct path only)
-
-            # Ensure target is also n_samples (DataMixer delays might shift it?)
-            # spatialise_signal (no reverb) keeps length roughly same but let's be safe
-            if clean_multichannel.shape[1] > self.n_samples:
-                clean_multichannel = clean_multichannel[:, : self.n_samples]
-            elif clean_multichannel.shape[1] < self.n_samples:
-                clean_multichannel = np.pad(
-                    clean_multichannel,
-                    ((0, 0), (0, self.n_samples - clean_multichannel.shape[1])),
-                )
-
-            target_tensor = torch.from_numpy(clean_multichannel).float()
-            yield input_tensor, target_tensor
+            yield input_tensor, target_tensor, target_azimuth

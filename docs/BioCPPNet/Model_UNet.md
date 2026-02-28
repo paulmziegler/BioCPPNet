@@ -114,3 +114,10 @@ The model is trained using a multi-objective loss function to ensure spectral fi
 -   **Base Filters:** 16 or 32
 -   **Depth:** 4 or 5 levels
 -   **Optimizer:** Adam (`lr=1e-4`)
+
+## Phase 2: Training Strategy
+During the final "Phase 2" integration, the U-Net is trained within the context of the full end-to-end pipeline:
+1.  **Frozen Pre-processor:** The Denoising Autoencoder (DAE) weights are frozen (`requires_grad=False`) during U-Net training, ensuring the U-Net learns to operate on pre-denoised spectrograms.
+2.  **Spatial Input:** The U-Net receives a signal that has already been spatially focused (beamformed) towards the target azimuth.
+3.  **Task:** The U-Net's job is purely non-linear source separation—subtracting overlapping bioacoustic signals (interferers) that "leaked" through the spatial beamformer.
+4.  **Target Function:** The model predicts a mask $\in [0, 1]$ which is element-wise multiplied with the DAE's output magnitude spectrogram. The loss is computed on the final reconstructed waveform.

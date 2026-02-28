@@ -51,9 +51,19 @@ We employ a hybrid approach to data generation to balance training variability w
     *   **Time Stretch:** $\pm 10\%$ to simulate call duration variance.
 *   **Library:** `torchaudio` or `librosa` (phase vocoder).
 
-## 4. Pipeline Update Plan
+## 4. Phase 2: Cocktail Party Dataset Generation
 
-1.  **Refactor `DataMixer`:** Support list of $N$ sources (Target + List[Interference]).
-2.  **Add `ReverbGenerator`:** Implement RIR convolution.
-3.  **Add `SensorPerturbation`:** Implement random gain/phase errors.
-4.  **Create `OnlineDataset`:** PyTorch wrapper for the `DataMixer`.
+For full deep learning separation (Phase 2), the `BioAcousticDataset` has been configured to simulate the complex "Cocktail Party" scenario natively:
+
+*   **Multi-Source Overlap:** The dataset dynamically mixes a clean target source with $N$ (default: 1) competing interferer vocalizations, each assigned a random, distinct spatial azimuth.
+*   **Dynamic SNR Scaling:** Interferers are scaled to have a relative SNR between -5 dB and +5 dB compared to the target, ensuring a highly challenging and realistic overlap scenario.
+*   **Reverberant Interference:** Both the target and the interfering sources undergo stochastic reverb convolution (RT60 $\approx$ 0.1s - 0.5s) before reaching the virtual microphone array.
+*   **Environmental Noise:** After spatial mixing, pink noise (simulating wind/thermal noise) is injected at an SNR of 10 to 20 dB to simulate realistic recording conditions.
+*   **Target Output:** The dataset yields a tuple containing the `(noisy_mixture, clean_reference_target, target_azimuth)` to facilitate both spatial beamforming and direct mask estimation by the U-Net.
+
+## 5. Pipeline Update Plan
+
+1.  **Refactor `DataMixer`:** Support list of $N$ sources (Target + List[Interference]). *(Completed)*
+2.  **Add `ReverbGenerator`:** Implement RIR convolution. *(Completed)*
+3.  **Add `SensorPerturbation`:** Implement random gain/phase errors. *(Completed)*
+4.  **Create `OnlineDataset`:** PyTorch wrapper for the `DataMixer`. *(Completed)*

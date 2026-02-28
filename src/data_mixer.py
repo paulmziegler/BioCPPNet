@@ -25,9 +25,20 @@ class DataMixer:
         # Load array configuration
         array_config = CONFIG.get("array", {})
         self.speed_of_sound = array_config.get("speed_of_sound", 343.0)
-        self.mic_positions = np.array(array_config.get("geometry", []))
-        
-        if len(self.mic_positions) == 0:
+        # Priority: 1. Explicit geometry (list or dict), 2. Fallback
+        if "geometry" in array_config and array_config["geometry"]:
+            geo = array_config["geometry"]
+            if isinstance(geo, dict):
+                import re
+                def extract_number(s):
+                    match = re.search(r'\d+', s)
+                    return int(match.group()) if match else 0
+                
+                sorted_keys = sorted(geo.keys(), key=extract_number)
+                self.mic_positions = np.array([geo[k] for k in sorted_keys])
+            else:
+                self.mic_positions = np.array(geo)
+        else:
             # Fallback to simple linear array if config missing
             self.mic_positions = np.array([
                 [0.0, 0.0, 0.0],

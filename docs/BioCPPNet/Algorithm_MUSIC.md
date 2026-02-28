@@ -41,3 +41,23 @@ Given the high sampling rate (250kHz) and broadband nature of bioacoustic signal
 ### Applications
 - **High-Resolution DoA:** Provides sub-degree accuracy compared to the sample-limited resolution of GCC-PHAT.
 - **Initialization for Beamforming:** Can provide highly accurate steering targets for the Delay-and-Sum beamformer to feed into the U-Net.
+
+## Comparison with GCC-PHAT in Cocktail Party Scenarios
+
+When dealing with a true "Cocktail Party" scenario (many overlapping bioacoustic signals in a noisy environment), **MUSIC is expected to significantly outperform GCC-PHAT**.
+
+### 1. Handling Multiple Simultaneous Sources
+*   **MUSIC:** Explicitly designed for multiple signals. By decomposing the spatial covariance matrix, it can theoretically identify up to $N-1$ distinct sources (where $N$ is the number of microphones). Each source appears as a distinct peak in the pseudo-spectrum.
+*   **GCC-PHAT:** Designed primarily for single-source tracking. When multiple signals overlap, their cross-correlation peaks blur together, and weaker sources are often completely masked by the loudest dominant signal.
+
+### 2. Resolution and Precision
+*   **MUSIC:** A "high-resolution" subspace method. It yields mathematically sharp peaks because the steering vectors are orthogonal to the noise subspace. This allows MUSIC to distinguish between sources that are physically very close together (sub-degree accuracy).
+*   **GCC-PHAT:** Resolution is limited by the sampling rate, leading to broader spatial "lobes" rather than sharp peaks, even when using parabolic interpolation.
+
+### 3. Environmental Noise vs. Reverberation
+*   **MUSIC:** Highly effective at isolating uncorrelated background noise (like wind or thermal microphone noise), as this noise is mathematically pushed into the "Noise Subspace," isolating the directional calls.
+*   **GCC-PHAT:** The PHAT weighting makes GCC-PHAT exceptionally robust to **reverberation** (echoes) by whitening the spectrum. It is often the better choice for tracking a *single* source in a highly reflective environment (like a cave).
+
+### Summary
+*   Use **MUSIC** for the BioCPPNet multi-source separation pipeline to accurately locate individual calls in a crowded, noisy environment (the "Cocktail Party").
+*   Use **GCC-PHAT** for fast, computationally cheap "Blind Beamforming" to track a single, loud target in highly reverberant conditions.

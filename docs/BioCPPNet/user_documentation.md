@@ -39,8 +39,8 @@ The primary entry point for project tasks. Use `python manage.py [command]`.
 | :--- | :--- |
 | `demo` | Launches the interactive Gradio web demo on `localhost:8502`. |
 | `download_data` | Downloads isolated vocalizations from the Earth Species Project. |
-| `train` | Starts the model training loop based on `project_config.yaml`. |
-| `evaluate` | Runs a synthetic SI-SDR benchmark to test the current model weights. |
+| `train` | Starts the model training loop (currently configured to train the Phase 2 U-Net on a synthetic Cocktail Party dataset). |
+| `evaluate` | Runs a synthetic SI-SDR benchmark to test the current model weights in the End-to-End Pipeline. |
 | `mix_data` | Generates synthetic multichannel mixtures from raw audio. |
 | `test` | Executes the unit test suite and saves results to `unit test results/`. |
 | `lint` | Runs `ruff` to check code quality and formatting. |
@@ -102,7 +102,8 @@ A lightweight PowerShell wrapper around `ffmpeg` for quick, synchronized capture
 
 **Usage:**
 1.  Open PowerShell in the project root.
-2.  Run the script: `.ecord_av.ps1`.
+2.  Run the script: `.
+ecord_av.ps1`.
 3.  Follow the prompts to select your audio and video devices.
 4.  Press **'q'** in the terminal to stop and save files to the `recordings/` folder.
 

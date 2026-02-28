@@ -41,15 +41,23 @@ class BioAcousticLoss(nn.Module):
         if self.window.device != est_wav.device:
             self.window = self.window.to(est_wav.device)
             
+        # Reshape to 2D if needed (e.g. B, C, T -> B*C, T)
+        if est_wav.ndim > 2:
+            est_wav_2d = est_wav.view(-1, est_wav.shape[-1])
+            target_wav_2d = target_wav.view(-1, target_wav.shape[-1])
+        else:
+            est_wav_2d = est_wav
+            target_wav_2d = target_wav
+            
         est_stft = torch.stft(
-            est_wav,
+            est_wav_2d,
             self.n_fft,
             self.hop_length,
             window=self.window,
             return_complex=True,
         )
         target_stft = torch.stft(
-            target_wav,
+            target_wav_2d,
             self.n_fft,
             self.hop_length,
             window=self.window,

@@ -126,7 +126,7 @@ class MUSIC(DoAEstimator):
 
     def estimate(
         self, signal: np.ndarray, search_resolution: float = 1.0
-    ) -> float:
+    ) -> float | list[float]:
         """
         Estimates the azimuth of the dominant source(s).
 
@@ -194,8 +194,19 @@ class MUSIC(DoAEstimator):
             if denom > 1e-12:
                 P_music[i] = 1.0 / denom
                 
-        # 8. Find peak
-        peak_idx = np.argmax(P_music)
-        return azimuths[peak_idx]
+        # 8. Find peaks
+        if self.num_sources == 1:
+            peak_idx = np.argmax(P_music)
+            return float(azimuths[peak_idx])
+        else:
+            peaks, _ = scipy.signal.find_peaks(P_music)
+            if len(peaks) == 0:
+                # Fallback if no peaks found
+                return [float(azimuths[np.argmax(P_music)])]
+            
+            # Sort peaks by descending value of P_music
+            sorted_peaks = peaks[np.argsort(P_music[peaks])][::-1]
+            top_peaks = sorted_peaks[:self.num_sources]
+            return [float(azimuths[p]) for p in top_peaks]
 
     

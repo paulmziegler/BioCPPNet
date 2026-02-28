@@ -65,18 +65,19 @@ class Beamformer:
         
         self.n_channels = len(self.mic_positions)
 
-    def estimate_doa(self, multichannel_signal: np.ndarray) -> float:
+    def estimate_doa(self, multichannel_signal: np.ndarray, num_sources: int = 1) -> float | list[float]:
         """
         Estimates the Direction of Arrival (DoA) using MUSIC algorithm.
         
         Args:
             multichannel_signal: Input signal (Channels x Time).
+            num_sources: The number of sources to look for.
             
         Returns:
-            Estimated azimuth in degrees.
+            Estimated azimuth in degrees, or list of azimuths if num_sources > 1.
         """
         from src.spatial.estimators import MUSIC
-        estimator = MUSIC(self.sample_rate, self.mic_positions, self.speed_of_sound)
+        estimator = MUSIC(self.sample_rate, self.mic_positions, self.speed_of_sound, num_sources=num_sources)
         return estimator.estimate(multichannel_signal)
 
     def delay_and_sum(

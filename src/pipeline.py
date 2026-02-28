@@ -41,17 +41,19 @@ class BioCPPNetPipeline:
             self.unet.load_state_dict(torch.load(unet_path, map_location=self.device))
 
     @torch.no_grad()
-    def process(self, multichannel_audio: np.ndarray, azimuth_deg: float = None, elevation_deg: float = 0.0) -> np.ndarray:
+    def process(self, multichannel_audio: np.ndarray, azimuth_deg: float | list[float] = None, elevation_deg: float = 0.0, num_sources: int = 1) -> np.ndarray | list[np.ndarray]:
         """
         Process multichannel audio through the end-to-end pipeline.
         
         Args:
             multichannel_audio: Numpy array of shape (Time, Channels) or (Channels, Time).
-            azimuth_deg: Target azimuth in degrees. If None, it will be estimated.
+            azimuth_deg: Target azimuth in degrees, or list of azimuths. If None, it will be estimated.
             elevation_deg: Target elevation in degrees.
+            num_sources: The number of sources to separate if azimuth_deg is None.
             
         Returns:
-            Numpy array of shape (Time,) containing the separated target source.
+            Numpy array of shape (Time,) containing the separated target source, 
+            or a list of such arrays if multiple sources are requested.
         """
         # 1. Input Normalization
         if multichannel_audio.ndim == 2:
@@ -61,48 +63,51 @@ class BioCPPNetPipeline:
                 
         # 2. Spatial Filtering (Beamforming)
         if azimuth_deg is None:
-            azimuth_deg = self.beamformer.estimate_doa(multichannel_audio)
+            azimuth_deg = self.beamformer.estimate_doa(multichannel_audio, num_sources=num_sources)
             
-        beamformed_signal = self.beamformer.delay_and_sum(
-            multichannel_audio, 
-            azimuth_deg=azimuth_deg, 
-            elevation_deg=elevation_deg
-        )
+        azimuths = azimuth_deg if isinstance(azimuth_deg, list) else [azimuth_deg]
         
-        # Convert to PyTorch tensor and add batch dimension: (1, Time)
-        wav_tensor = torch.from_numpy(beamformed_signal).float().unsqueeze(0).to(self.device)
+        output_signals = []
         
-        # 3. Time-Frequency Transform (STFT)
-        # Using the DAE's internal wav_to_spectrogram would give us log_mag, 
-        # but we need the phase for reconstruction. So we compute STFT directly.
-        window = torch.hann_window(self.n_fft, device=self.device)
-        stft = torch.stft(
-            wav_tensor,
-            n_fft=self.n_fft,
-            hop_length=self.hop_length,
-            window=window,
-            return_complex=True,
-        )
-        
-        # Extract magnitude and phase
-        mag = torch.abs(stft)
-        log_mag = torch.log1p(mag).unsqueeze(1)  # (Batch=1, Channels=1, FreqBins, TimeFrames)
-        phase = stft # original complex stft contains the phase
-        
-        # 4. Denoising (DAE)
-        denoised_log_mag = self.dae(log_mag)
-        
-        # 5. Source Separation (U-Net)
-        # U-Net outputs a mask (logits), we apply sigmoid to get values in [0, 1]
-        mask_logits = self.unet(denoised_log_mag)
-        mask = torch.sigmoid(mask_logits)
-        
-        # Apply mask to the denoised magnitude
-        target_log_mag = denoised_log_mag * mask
-        
-        # 6. Signal Reconstruction (ISTFT)
-        # DAE.spectrogram_to_wav handles the ISTFT with original phase
-        output_wav = self.dae.spectrogram_to_wav(target_log_mag, phase)
-        
-        # Convert back to numpy array (Time,)
-        return output_wav.squeeze().cpu().numpy()
+        for az in azimuths:
+            beamformed_signal = self.beamformer.delay_and_sum(
+                multichannel_audio, 
+                azimuth_deg=az, 
+                elevation_deg=elevation_deg
+            )
+            
+            # Convert to PyTorch tensor and add batch dimension: (1, Time)
+            wav_tensor = torch.from_numpy(beamformed_signal).float().unsqueeze(0).to(self.device)
+            
+            # 3. Time-Frequency Transform (STFT)
+            window = torch.hann_window(self.n_fft, device=self.device)
+            stft = torch.stft(
+                wav_tensor,
+                n_fft=self.n_fft,
+                hop_length=self.hop_length,
+                window=window,
+                return_complex=True,
+            )
+            
+            # Extract magnitude and phase
+            mag = torch.abs(stft)
+            log_mag = torch.log1p(mag).unsqueeze(1)  # (Batch=1, Channels=1, FreqBins, TimeFrames)
+            phase = stft # original complex stft contains the phase
+            
+            # 4. Denoising (DAE)
+            denoised_log_mag = self.dae(log_mag)
+            
+            # 5. Source Separation (U-Net)
+            mask_logits = self.unet(denoised_log_mag)
+            mask = torch.sigmoid(mask_logits)
+            
+            # Apply Mask
+            target_log_mag = denoised_log_mag * mask
+            
+            # 6. Signal Reconstruction (ISTFT)
+            output_wav = self.dae.spectrogram_to_wav(target_log_mag, phase)
+            output_signals.append(output_wav.squeeze().cpu().numpy())
+            
+        if isinstance(azimuth_deg, list) or num_sources > 1:
+            return output_signals
+        return output_signals[0]

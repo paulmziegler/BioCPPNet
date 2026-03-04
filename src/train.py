@@ -129,6 +129,17 @@ def train():
             mag = torch.abs(stft)
             log_mag = torch.log1p(mag).unsqueeze(1)  # (B, 1, F, T)
             
+            # Compute STFT of clean target for direct magnitude loss
+            clean_flat = clean_wav.view(batch_size, -1)
+            target_stft = torch.stft(
+                clean_flat,
+                n_fft=n_fft,
+                hop_length=hop_length,
+                window=window,
+                return_complex=True,
+            )
+            clean_mag = torch.abs(target_stft) # (B, F, T)
+            
             # Denoise (Frozen DAE)
             denoised_log_mag = dae(log_mag)
             
@@ -141,24 +152,24 @@ def train():
             denoised_linear_mag = torch.expm1(denoised_log_mag)
             target_linear_mag = denoised_linear_mag * mask
             
-            # Convert back to log-magnitude for DAE reconstruction
-            target_log_mag = torch.log1p(target_linear_mag)
+            # Reshape to match clean_mag (B, F, T)
+            target_linear_mag = target_linear_mag.squeeze(1)
             
-            # Reconstruct ISTFT
-            # Provide phase from original STFT
-            # dae.spectrogram_to_wav expects (B*C, 1, F, T) and phase (B*C, F, T)
-            output_wav = dae.spectrogram_to_wav(target_log_mag, stft)
+            # Ensure sequence lengths match (STFT frames might differ by 1)
+            min_frames = min(target_linear_mag.shape[-1], clean_mag.shape[-1])
+            target_linear_mag = target_linear_mag[..., :min_frames]
+            clean_mag = clean_mag[..., :min_frames]
             
-            # Reshape to (B, 1, T) to match target_clean
-            output_wav = output_wav.view(batch_size, 1, -1)
+            # Direct Magnitude & Spectral Convergence Loss
+            # Bypass the loss_fn waveform wrapper to avoid ISTFT phase destruction
+            loss_mag = torch.mean(torch.abs(target_linear_mag - clean_mag))
             
-            # Ensure sequence lengths match due to ISTFT padding
-            min_len = min(output_wav.shape[-1], clean_wav.shape[-1])
-            output_wav = output_wav[..., :min_len]
-            clean_wav = clean_wav[..., :min_len]
+            diff_norm = torch.linalg.norm(clean_mag - target_linear_mag, ord="fro", dim=(1, 2))
+            target_norm = torch.linalg.norm(clean_mag, ord="fro", dim=(1, 2))
+            loss_sc = torch.mean(diff_norm / (target_norm + 1e-7))
             
-            # Loss
-            loss = loss_fn(output_wav, clean_wav)
+            # Match weights from BioAcousticLoss
+            loss = (1.0 * loss_mag) + (0.1 * loss_sc)
             
             # Backward
             optimizer.zero_grad()

@@ -114,13 +114,14 @@ class BioAcousticDataset(IterableDataset):
             target_multichannel = self.mixer.spatialise_signal(
                 clean_mono_target, target_azimuth, add_reverb=False
             )
-            # Reference mic is channel 0
-            clean_reference_target = target_multichannel[0:1, :]
             
             # 4. Generate Target with Reverb
             reverberant_target = self.mixer.spatialise_signal(
                 clean_mono_target, target_azimuth, add_reverb=True, rt60=np.random.uniform(0.1, 0.5)
             )
+            
+            # Reference mic is channel 0
+            reverberant_reference_target = reverberant_target[0:1, :]
             
             sources_to_mix = [reverberant_target]
             
@@ -153,10 +154,10 @@ class BioAcousticDataset(IterableDataset):
             elif mixture.shape[1] < self.n_samples:
                 mixture = np.pad(mixture, ((0, 0), (0, self.n_samples - mixture.shape[1])))
                 
-            if clean_reference_target.shape[1] > self.n_samples:
-                clean_reference_target = clean_reference_target[:, : self.n_samples]
-            elif clean_reference_target.shape[1] < self.n_samples:
-                clean_reference_target = np.pad(clean_reference_target, ((0, 0), (0, self.n_samples - clean_reference_target.shape[1])))
+            if reverberant_reference_target.shape[1] > self.n_samples:
+                reverberant_reference_target = reverberant_reference_target[:, : self.n_samples]
+            elif reverberant_reference_target.shape[1] < self.n_samples:
+                reverberant_reference_target = np.pad(reverberant_reference_target, ((0, 0), (0, self.n_samples - reverberant_reference_target.shape[1])))
 
             # Add Environmental Noise (Wind/Thermal)
             snr_noise = np.random.uniform(10, 20)
@@ -166,6 +167,6 @@ class BioAcousticDataset(IterableDataset):
             
             # 5. Convert to Tensor
             input_tensor = torch.from_numpy(noisy_mixture).float()
-            target_tensor = torch.from_numpy(clean_reference_target).float()
+            target_tensor = torch.from_numpy(reverberant_reference_target).float()
             
             yield input_tensor, target_tensor, target_azimuth

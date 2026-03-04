@@ -58,8 +58,19 @@ try {
     docker-compose exec biocppnet python manage.py train
 
     # 6. Evaluate / Test
-    Write-Host "`n[6/5] Evaluating the trained model..." -ForegroundColor Yellow
+    Write-Host "`n[6/6] Evaluating the trained model..." -ForegroundColor Yellow
     docker-compose exec biocppnet python manage.py evaluate
+    
+    Write-Host "`n[6/6] Generating Training Plot..." -ForegroundColor Yellow
+    $LatestLog = Get-ChildItem -Path logs -Filter *.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($LatestLog) {
+        $LogPath = "logs/" + $LatestLog.Name
+        $OutPath = "results/scripts/training_loss.png"
+        Write-Host "Using latest log file: $LogPath" -ForegroundColor Gray
+        docker-compose exec biocppnet python results/scripts/plot_training.py $LogPath -o $OutPath
+    } else {
+        Write-Host "No log file found to plot." -ForegroundColor Yellow
+    }
 
 } catch {
     Write-Host "`nAn error occurred during execution:" -ForegroundColor Red

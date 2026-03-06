@@ -181,17 +181,16 @@ def train():
             )
             clean_mag = torch.abs(target_stft) # (B, F, T)
             
-            # Denoise (Frozen DAE)
-            denoised_log_mag = dae(log_mag)
+            # Denoise (Frozen DAE) - REMOVED: Training U-Net directly on raw STFT
+            # denoised_log_mag = dae(log_mag)
             
-            # Forward U-Net
-            mask_logits = unet(denoised_log_mag)
+            # Forward U-Net directly on beamformed log-magnitude
+            mask_logits = unet(log_mag)
             mask = torch.sigmoid(mask_logits)
             
             # Apply Mask in Linear Domain
-            # denoised_log_mag = log(1 + mag) -> mag = exp(denoised_log_mag) - 1
-            denoised_linear_mag = torch.expm1(denoised_log_mag)
-            target_linear_mag = denoised_linear_mag * mask
+            linear_mag = torch.expm1(log_mag)
+            target_linear_mag = linear_mag * mask
             
             # Reshape to match clean_mag (B, F, T)
             target_linear_mag = target_linear_mag.squeeze(1)
@@ -218,45 +217,31 @@ def train():
         avg_loss = epoch_loss / steps_per_epoch
         history_loss.append(avg_loss)
         
-        # --- Validation Step ---
+        # --- Validation Step (Visual Debugging Only) ---
         unet.eval()
-        val_sisdr_scores = []
         with torch.no_grad():
-            for v_noisy, v_clean, v_az in val_data:
-                # Need to add batch dimension
-                v_noisy = v_noisy.unsqueeze(0).to(device)
-                v_clean = v_clean.numpy() # keep clean as numpy for sisdr
-                
-                v_bf = beamformer.delay_and_sum(v_noisy[0].cpu().numpy(), azimuth_deg=v_az)
-                v_bf_tensor = torch.from_numpy(v_bf).float().unsqueeze(0).unsqueeze(1).to(device)
-                
-                v_stft = torch.stft(v_bf_tensor.view(1, -1), n_fft=n_fft, hop_length=hop_length, window=window, return_complex=True)
-                v_mag = torch.abs(v_stft)
-                v_log_mag = torch.log1p(v_mag).unsqueeze(1)
-                
-                v_denoised_log_mag = dae(v_log_mag)
-                v_mask = torch.sigmoid(unet(v_denoised_log_mag))
-                
-                v_target_linear_mag = torch.expm1(v_denoised_log_mag) * v_mask
-                v_target_log_mag = torch.log1p(v_target_linear_mag)
-                
-                v_out_wav = dae.spectrogram_to_wav(v_target_log_mag, v_stft)
-                v_out_wav_np = v_out_wav.squeeze().cpu().numpy()
-                
-                min_len = min(len(v_out_wav_np), v_clean.shape[-1])
-                score = calculate_sisdr(v_clean[0, :min_len], v_out_wav_np[:min_len])
-                if not np.isinf(score) and not np.isnan(score):
-                    val_sisdr_scores.append(score)
-                    
-            avg_val_sisdr = np.mean(val_sisdr_scores) if val_sisdr_scores else -100.0
-            history_val_sisdr.append(avg_val_sisdr)
+            # We just process the last sample from the validation set to generate a debug plot
+            v_noisy, v_clean, v_az = val_data[-1]
             
-        logger.info(f"Epoch {epoch} Completed. Avg Loss: {avg_loss:.4f} | Val SI-SDR: {avg_val_sisdr:.2f} dB")
+            v_noisy = v_noisy.unsqueeze(0).to(device)
+            v_clean = v_clean.numpy() 
+            
+            v_bf = beamformer.delay_and_sum(v_noisy[0].cpu().numpy(), azimuth_deg=v_az)
+            v_bf_tensor = torch.from_numpy(v_bf).float().unsqueeze(0).unsqueeze(1).to(device)
+            
+            v_stft = torch.stft(v_bf_tensor.view(1, -1), n_fft=n_fft, hop_length=hop_length, window=window, return_complex=True)
+            v_mag = torch.abs(v_stft)
+            v_log_mag = torch.log1p(v_mag).unsqueeze(1)
+            
+            v_mask = torch.sigmoid(unet(v_log_mag))
+            v_target_linear_mag = torch.expm1(v_log_mag) * v_mask
+            
+        logger.info(f"Epoch {epoch} Completed. Avg Loss: {avg_loss:.4f}")
         
-        # Save Debug Spectrograms for the last sample of the validation set
+        # Save Debug Spectrograms
         save_debug_spectrograms(
             epoch, 
-            torch.expm1(v_denoised_log_mag).squeeze().cpu().numpy(),
+            torch.expm1(v_log_mag).squeeze().cpu().numpy(),
             # Compute clean target mag for plotting
             torch.abs(torch.stft(torch.from_numpy(v_clean).float().to(device).view(1, -1), n_fft=n_fft, hop_length=hop_length, window=window, return_complex=True)).squeeze().cpu().numpy(),
             v_target_linear_mag.squeeze().cpu().numpy(),

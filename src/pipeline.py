@@ -94,21 +94,20 @@ class BioCPPNetPipeline:
             log_mag = torch.log1p(mag).unsqueeze(1)  # (Batch=1, Channels=1, FreqBins, TimeFrames)
             phase = stft # original complex stft contains the phase
             
-            # 4. Denoising (DAE)
-            denoised_log_mag = self.dae(log_mag)
-            
-            # 5. Source Separation (U-Net)
-            mask_logits = self.unet(denoised_log_mag)
+            # 4. Source Separation (U-Net) 
+            # Note: U-Net now trained to handle the raw beamformed log_mag directly
+            mask_logits = self.unet(log_mag)
             mask = torch.sigmoid(mask_logits)
             
             # Apply Mask in Linear Domain
-            denoised_linear_mag = torch.expm1(denoised_log_mag)
-            target_linear_mag = denoised_linear_mag * mask
+            linear_mag = torch.expm1(log_mag)
+            target_linear_mag = linear_mag * mask
             
             # Convert back to log-magnitude for ISTFT
             target_log_mag = torch.log1p(target_linear_mag)
             
-            # 6. Signal Reconstruction (ISTFT)
+            # 5. Signal Reconstruction (ISTFT)
+            # We still use the DAE's helper method because it correctly handles the complex ISTFT phase
             output_wav = self.dae.spectrogram_to_wav(target_log_mag, phase)
             output_signals.append(output_wav.squeeze().cpu().numpy())
             

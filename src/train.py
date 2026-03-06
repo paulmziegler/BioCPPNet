@@ -201,16 +201,9 @@ def train():
             target_linear_mag = target_linear_mag[..., :min_frames]
             clean_mag = clean_mag[..., :min_frames]
             
-            # Direct Magnitude & Spectral Convergence Loss
+            # Direct Magnitude Loss
             # Bypass the loss_fn waveform wrapper to avoid ISTFT phase destruction
-            loss_mag = torch.mean(torch.abs(target_linear_mag - clean_mag))
-            
-            diff_norm = torch.linalg.norm(clean_mag - target_linear_mag, ord="fro", dim=(1, 2))
-            target_norm = torch.linalg.norm(clean_mag, ord="fro", dim=(1, 2))
-            loss_sc = torch.mean(diff_norm / (target_norm + 1e-7))
-            
-            # Match weights from BioAcousticLoss
-            loss = (1.0 * loss_mag) + (0.1 * loss_sc)
+            loss = torch.mean(torch.abs(target_linear_mag - clean_mag))
             
             # Backward
             optimizer.zero_grad()

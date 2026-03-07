@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Signal_Specification.md",
+                "file": "Algorithm_GCC_PHAT.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Signal_Specification"
+              "title": "Algorithm_GCC_PHAT"
             }
           }
         ]
@@ -185,17 +185,17 @@
   },
   "active": "7af779bf5df8bf47",
   "lastOpenFiles": [
-    "Model_UNet.md",
-    "Model_DAE.md",
-    "KANBAN.md",
     "Algorithm_MUSIC.md",
-    "Algorithm_GCC_PHAT.md",
+    "architecture.md",
+    "Evaluation_Report.md",
+    "KANBAN.md",
+    "Model_DAE.md",
+    "Model_UNet.md",
+    "Signal_Specification.md",
     "Training_Execution_Log.md",
     "user_documentation.md",
-    "Evaluation_Report.md",
-    "architecture.md",
+    "Algorithm_GCC_PHAT.md",
     "Data_Augmentation_Strategy.md",
-    "Signal_Specification.md",
     "DAE_Methodology_Comparison.md",
     "Welcome.md",
     "Untitled 1.canvas",

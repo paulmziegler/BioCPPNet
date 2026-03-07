@@ -111,6 +111,17 @@ def train():
     optimizer = torch.optim.Adam(
         unet.parameters(), lr=model_cfg.get("learning_rate", 0.001)
     )
+    
+    # Add Learning Rate Scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, 
+        mode='min', 
+        factor=0.5, 
+        patience=5, 
+        min_lr=1e-6, 
+        verbose=True
+    )
+    
     # Ignore time-domain loss (phase errors) to allow magnitude mask to learn
     loss_fn = BioAcousticLoss(n_fft=n_fft, hop_length=hop_length, alpha_time=0.0)
     
@@ -139,6 +150,9 @@ def train():
     for epoch in range(1, epochs + 1):
         unet.train()
         epoch_loss = 0.0
+        
+        # Update Curriculum Difficulty
+        dataset.update_curriculum(epoch, epochs)
         
         # Create iterator for this epoch
         iterator = iter(loader)

@@ -40,8 +40,21 @@ class BioAcousticDataset(IterableDataset):
         self.return_geometry = return_geometry
         self.num_interferers = num_interferers
         
+        # Curriculum Learning: Start easy (Target +5 to +15 dB over interferer)
+        self.min_snr = 5.0
+        self.max_snr = 15.0
+        
         # Initialize DataMixer
         self.mixer = DataMixer(sample_rate=sample_rate)
+        
+    def update_curriculum(self, epoch: int, total_epochs: int):
+        """Gradually makes the separation task harder as training progresses."""
+        progress = min(1.0, epoch / (total_epochs * 0.7)) # Hit max difficulty at 70% of training
+        
+        # At start (progress=0): SNR between 5 and 15 dB
+        # At end (progress=1): SNR between -5 and 5 dB
+        self.min_snr = 5.0 - (10.0 * progress)
+        self.max_snr = 15.0 - (10.0 * progress)
         
                 # Update mixer geometry if needed
         # (assuming linear array for now or loaded from config)
@@ -133,9 +146,10 @@ class BioAcousticDataset(IterableDataset):
                     interferer_mono, interferer_azimuth, add_reverb=True, rt60=np.random.uniform(0.1, 0.5)
                 )
                 
-                # Scale interferer for SNR
-                # Target is reference. Let's make interferer SNR randomly between 0 to 10 dB lower or higher
-                snr_db = np.random.uniform(-5, 5)
+                # Scale interferer for SNR using curriculum bounds
+                # Target is reference. Let's make interferer SNR dynamically scaled
+                snr_db = np.random.uniform(-self.max_snr, -self.min_snr) if np.random.rand() > 0.5 else np.random.uniform(self.min_snr, self.max_snr)
+                
                 p_target = np.mean(reverberant_target**2)
                 p_interferer = np.mean(reverberant_interferer**2)
                 if p_interferer > 0:

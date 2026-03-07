@@ -161,13 +161,26 @@ def evaluate(num_samples):
         pipeline = BioCPPNetPipeline()
         sample_rate = pipeline.sample_rate
         
-        # Load trained weights
-        unet_path = "results/checkpoints/unet_epoch_50.pt"
-        if os.path.exists(unet_path):
-            click.echo(f"Loading trained U-Net weights from {unet_path}...")
-            pipeline.load_weights(unet_path=unet_path)
+        # Load trained weights - find the latest one
+        checkpoint_dir = "results/checkpoints"
+        latest_unet = None
+        if os.path.exists(checkpoint_dir):
+            checkpoints = [f for f in os.listdir(checkpoint_dir) if f.startswith("unet_epoch_") and f.endswith(".pt")]
+            if checkpoints:
+                # Sort by epoch number
+                import re
+                def get_epoch(f):
+                    match = re.search(r"unet_epoch_(\d+)\.pt", f)
+                    return int(match.group(1)) if match else 0
+                
+                checkpoints.sort(key=get_epoch, reverse=True)
+                latest_unet = os.path.join(checkpoint_dir, checkpoints[0])
+
+        if latest_unet:
+            click.echo(f"Loading latest trained U-Net weights from {latest_unet}...")
+            pipeline.load_weights(unet_path=latest_unet)
         else:
-            click.echo("Warning: No trained U-Net weights found (results/checkpoints/unet_epoch_50.pt). Using random init.")
+            click.echo(f"Warning: No trained U-Net weights found in {checkpoint_dir}. Using random init.")
             
         # Locate real data
         shared_data_dir = r"D:\Data\Common\BEANS"

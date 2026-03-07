@@ -3,6 +3,7 @@ services:
     build: .
     volumes:
       - .:/app
+      - D:/Data/Common/BEANS:/data/beans
     ports:
       - "8502:8502"
     command: tail -f /dev/null

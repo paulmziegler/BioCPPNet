@@ -43,25 +43,15 @@ docker-compose up -d
 Start-Sleep -Seconds 2
 
 try {
-    # 4. Download External Data
-    Write-Host "`n[4/5] Downloading $NumTrainingFiles external audio files from Earth Species Project..." -ForegroundColor Yellow
-    # Ensure the data directory is writable by the container
-    docker-compose exec -u root biocppnet mkdir -p data/raw
-    docker-compose exec -u root biocppnet chown -R appuser:appuser data/
-    
-    # Download the data using the CLI
-    docker-compose exec biocppnet python manage.py download-data --split "train" --limit $NumTrainingFiles
-
-    # 5. Train the Model
-    Write-Host "`n[5/5] Training the model..." -ForegroundColor Yellow
-    # Assuming 'manage.py train' looks for files in data/raw
+    # 4. Train the Model
+    Write-Host "`n[4/5] Training the model using shared dataset..." -ForegroundColor Yellow
     docker-compose exec biocppnet python manage.py train
 
-    # 6. Evaluate / Test
-    Write-Host "`n[6/6] Evaluating the trained model..." -ForegroundColor Yellow
+    # 5. Evaluate / Test
+    Write-Host "`n[5/5] Evaluating the trained model..." -ForegroundColor Yellow
     docker-compose exec biocppnet python manage.py evaluate
     
-    Write-Host "`n[6/6] Generating Training Plot..." -ForegroundColor Yellow
+    Write-Host "`n[5/5] Generating Training Plot..." -ForegroundColor Yellow
     $LatestLog = Get-ChildItem -Path logs -Filter *.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if ($LatestLog) {
         $LogPath = "logs/" + $LatestLog.Name

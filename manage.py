@@ -56,21 +56,27 @@ def run():
 @cli.command()
 @click.option('--split', default='test', help='Dataset split to download (e.g. train, test).')
 @click.option('--limit', default=10, help='Maximum number of files to download.')
-def download_data(split, limit):
+@click.option('--out-dir', default='D:\\Data\\Common\\BEANS', help='Output directory for the downloaded data.')
+def download_data(split, limit, out_dir):
     """Download isolated vocalizations from the Earth Species Project."""
-    data_dir = DIRS.get("data", "data")
-    raw_dir = os.path.join(data_dir, "raw")
-    Path(raw_dir).mkdir(parents=True, exist_ok=True)
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     
-    click.echo(f"Downloading data to {raw_dir}...")
+    click.echo(f"Downloading data to {out_dir}...")
     try:
         from datasets import load_dataset
         import soundfile as sf
         import numpy as np
         
-        click.echo(f"Downloading Earth Species Project BEANS dataset ({split}, limit={limit})...")
+        click.echo(f"Downloading Earth Species Project BEANS dataset (split: {split}, limit={limit})...")
         # Load the BEANS dataset in streaming mode to avoid downloading 50GB
-        dataset = load_dataset("EarthSpeciesProject/BEANS-Zero", split=split, streaming=True)
+        try:
+            dataset = load_dataset("EarthSpeciesProject/BEANS-Zero", split=split, streaming=True)
+        except ValueError as e:
+            if "Bad split" in str(e):
+                click.echo(f"Split '{split}' failed. Attempting fallback to 'test' split...")
+                dataset = load_dataset("EarthSpeciesProject/BEANS-Zero", split="test", streaming=True)
+            else:
+                raise e
         
         count = 0
         for i, item in enumerate(dataset):
@@ -97,13 +103,13 @@ def download_data(split, limit):
             label = str(item.get("dataset_name", item.get("task", "unknown"))).replace("/", "_").replace(" ", "_")
             
             filename = f"beans_{label}_{i}.wav"
-            filepath = os.path.join(raw_dir, filename)
+            filepath = os.path.join(out_dir, filename)
             
             # Ensure float32 for pipeline compatibility
             sf.write(filepath, audio_data.astype(np.float32), sr)
             count += 1
             
-        click.echo(f"Successfully downloaded and saved {count} mono audio files to {raw_dir}.")
+        click.echo(f"Successfully downloaded and saved {count} mono audio files to {out_dir}.")
     except ImportError:
         click.echo("Error: 'datasets' or 'soundfile' library not found. Please run 'pip install datasets huggingface_hub soundfile'.")
     except Exception as e:

@@ -60,8 +60,24 @@ def train():
 
     # 2. Setup Dataset & Loader
     sample_rate = audio_cfg.get("sample_rate", 250000)
+    
+    # Load shared dataset if it exists, otherwise fallback to synthetic
+    # Support both local Windows execution and Docker container execution paths
+    shared_data_dir = r"D:\Data\Common\BEANS"
+    docker_data_dir = "/data/beans"
+    
+    clean_files = []
+    if os.path.exists(shared_data_dir):
+        clean_files = [os.path.join(shared_data_dir, f) for f in os.listdir(shared_data_dir) if f.endswith('.wav')]
+        logger.info(f"Loaded {len(clean_files)} files from {shared_data_dir}")
+    elif os.path.exists(docker_data_dir):
+        clean_files = [os.path.join(docker_data_dir, f) for f in os.listdir(docker_data_dir) if f.endswith('.wav')]
+        logger.info(f"Loaded {len(clean_files)} files from container path {docker_data_dir}")
+    else:
+        logger.warning(f"Shared data dir not found. Using synthetic chirps.")
+
     dataset = BioAcousticDataset(
-        clean_files=[], # Empty list -> uses synthetic generation
+        clean_files=clean_files, 
         sample_rate=sample_rate,
         duration=audio_cfg.get("duration", 1.0),
         n_channels=4, # From array config ideally

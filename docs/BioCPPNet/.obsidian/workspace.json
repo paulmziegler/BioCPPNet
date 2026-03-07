@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Algorithm_GCC_PHAT.md",
+                "file": "Training_Execution_Log.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Algorithm_GCC_PHAT"
+              "title": "Training_Execution_Log"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "7af779bf5df8bf47",
   "lastOpenFiles": [
+    "Algorithm_GCC_PHAT.md",
     "Algorithm_MUSIC.md",
     "architecture.md",
     "Evaluation_Report.md",
@@ -194,7 +195,6 @@
     "Signal_Specification.md",
     "Training_Execution_Log.md",
     "user_documentation.md",
-    "Algorithm_GCC_PHAT.md",
     "Data_Augmentation_Strategy.md",
     "DAE_Methodology_Comparison.md",
     "Welcome.md",

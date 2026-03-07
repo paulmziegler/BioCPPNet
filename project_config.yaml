@@ -24,7 +24,7 @@ testing:
   plot_format: "png"
 
 audio:
-  sample_rate: 48000
+  sample_rate: 16000
   n_fft: 1024
   hop_length: 512
   win_length: 1024
@@ -55,8 +55,8 @@ array:
 model:
   learning_rate: 0.001
   batch_size: 16
-  epochs: 50
-  architecture: "DAE" 
+  epochs: 100
+  architecture: "BioCPPNet" 
 
 training:
   steps_per_epoch: 100

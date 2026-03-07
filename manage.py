@@ -145,52 +145,96 @@ def train(config):
         raise e
 
 @cli.command()
-def evaluate():
-    """Evaluate model performance using SI-SDR."""
-    click.echo("Starting evaluation on synthetic data...")
+@click.option('--num-samples', default=5, help='Number of real samples to evaluate.')
+def evaluate(num_samples):
+    """Evaluate model performance using real samples from the BEANS dataset."""
+    click.echo(f"Starting evaluation on {num_samples} real samples...")
     try:
         import numpy as np
+        import torch
         from src.metrics.sisdr import calculate_sisdr
         from src.pipeline import BioCPPNetPipeline
-        from src.spatial.physics import azimuth_elevation_to_vector, calculate_steering_vector, apply_subsample_shifts
+        from src.data_mixer import DataMixer
+        import soundfile as sf
         
+        # Load Pipeline
         pipeline = BioCPPNetPipeline()
         sample_rate = pipeline.sample_rate
-        duration = 1.0
-        n_samples = int(duration * sample_rate)
         
-        # Load trained weights if they exist
-        checkpoint_path = "results/checkpoints/dae_epoch_50.pt"
-        if os.path.exists(checkpoint_path):
-            click.echo(f"Loading trained weights from {checkpoint_path}...")
-            pipeline.load_weights(dae_path=checkpoint_path)
+        # Load trained weights
+        unet_path = "results/checkpoints/unet_epoch_50.pt"
+        if os.path.exists(unet_path):
+            click.echo(f"Loading trained U-Net weights from {unet_path}...")
+            pipeline.load_weights(unet_path=unet_path)
         else:
-            click.echo("Warning: No trained weights found. Using random initialization.")
+            click.echo("Warning: No trained U-Net weights found (results/checkpoints/unet_epoch_50.pt). Using random init.")
+            
+        # Locate real data
+        shared_data_dir = r"D:\Data\Common\BEANS"
+        docker_data_dir = "/data/beans"
+        data_dir = shared_data_dir if os.path.exists(shared_data_dir) else docker_data_dir
         
-        # 1. Generate clean target signal (e.g., 4kHz tone)
-        t = np.arange(n_samples) / sample_rate
-        clean_signal = np.sin(2 * np.pi * 4000 * t).astype(np.float32)
-        
-        # 2. Spatialise to 45 degrees
-        source_vec = azimuth_elevation_to_vector(45.0, 0.0)
-        distances = calculate_steering_vector(pipeline.beamformer.mic_positions, source_vec)
-        delays = -distances / pipeline.beamformer.speed_of_sound
-        multichannel = apply_subsample_shifts(clean_signal, delays, sample_rate)
-        
-        # Add a bit of noise
-        multichannel += 0.1 * np.random.randn(*multichannel.shape).astype(np.float32)
-        
-        # 3. Process through pipeline
-        output_signal = pipeline.process(multichannel, azimuth_deg=45.0)
-        
-        # 4. Compute SI-SDR
-        # Need to ensure lengths match due to potential STFT padding differences
-        min_len = min(len(clean_signal), len(output_signal))
-        score = calculate_sisdr(clean_signal[:min_len], output_signal[:min_len])
-        
-        click.echo(f"Evaluation complete. SI-SDR score: {score:.2f} dB")
+        if not os.path.exists(data_dir):
+            click.echo(f"Error: Data directory {data_dir} not found. Cannot run real evaluation.")
+            return
+
+        all_files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) if f.endswith('.wav')]
+        if len(all_files) < 2:
+            click.echo("Error: Not enough files in data directory to create mixtures.")
+            return
+
+        mixer = DataMixer(sample_rate=sample_rate)
+        scores = []
+
+        for i in range(num_samples):
+            # 1. Pick two random files
+            target_path = np.random.choice(all_files)
+            interferer_path = np.random.choice(all_files)
+            
+            target_mono, _ = sf.read(target_path)
+            interferer_mono, _ = sf.read(interferer_path)
+            
+            # Truncate to 1 second
+            n_samples = sample_rate
+            target_mono = target_mono[:n_samples] if len(target_mono) > n_samples else np.pad(target_mono, (0, n_samples - len(target_mono)))
+            interferer_mono = interferer_mono[:n_samples] if len(interferer_mono) > n_samples else np.pad(interferer_mono, (0, n_samples - len(interferer_mono)))
+
+            # 2. Spatialize
+            target_az = np.random.uniform(0, 180)
+            interferer_az = np.random.uniform(0, 180)
+            
+            target_spatial = mixer.spatialise_signal(target_mono, target_az, add_reverb=True)
+            interferer_spatial = mixer.spatialise_signal(interferer_mono, interferer_az, add_reverb=True)
+            
+            # Mix with random SNR
+            snr_db = np.random.uniform(-5, 5)
+            mixture = mixer.mix_signals(target_spatial, interferer_spatial, snr_db)
+            mixture = mixer.add_noise(mixture, 'pink', snr_db=15)
+            
+            # 3. Process
+            output_signal = pipeline.process(mixture, azimuth_deg=target_az)
+            
+            # 4. Score against dry reference (Direct Path)
+            # Reference mic is channel 0 of direct spatialisation
+            reference_dry = mixer.spatialise_signal(target_mono, target_az, add_reverb=False)[0]
+            
+            min_len = min(len(reference_dry), len(output_signal))
+            score = calculate_sisdr(reference_dry[:min_len], output_signal[:min_len])
+            
+            if not np.isinf(score) and not np.isnan(score):
+                scores.append(score)
+                click.echo(f" Sample {i+1}/{num_samples}: SI-SDR = {score:.2f} dB")
+
+        if scores:
+            avg_score = np.mean(scores)
+            click.echo(f"\nEvaluation complete. Average Real-World SI-SDR: {avg_score:.2f} dB")
+        else:
+            click.echo("Evaluation failed to produce valid scores.")
+
     except ImportError as e:
-        click.echo(f"Error importing dependencies for evaluation: {e}")
+        click.echo(f"Error importing dependencies: {e}")
+    except Exception as e:
+        click.echo(f"Evaluation error: {e}")
 
 @cli.command()
 def demo():
